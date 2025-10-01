@@ -1,0 +1,5 @@
+heltal huvud()
+{
+    heltal foersta_talet = 1337;
+    returnera 1;
+}
