@@ -62,6 +62,11 @@ protected:
   void print(std::ostream &os) const override { os << "ClosedSquigglyToken"; }
 };
 
+class CommaToken : public Token {
+protected:
+  void print(std::ostream &os) const override { os << "CommaToken"; }
+};
+
 class TerminatorToken : public Token {
 protected:
   void print(std::ostream &os) const override { os << "TerminatorToken"; }
