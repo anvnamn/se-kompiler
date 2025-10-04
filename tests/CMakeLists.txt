@@ -1,5 +1,5 @@
 add_compile_definitions(
-    TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
+  TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
 )
 
 add_executable(
@@ -12,5 +12,16 @@ target_link_libraries(
   GTest::gtest_main
 )
 
+add_executable(
+  parser_test
+  parser_test.cpp
+)
+target_link_libraries(
+  parser_test
+  mycompiler_lib
+  GTest::gmock_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(lexer_test)
+gtest_discover_tests(parser_test)
