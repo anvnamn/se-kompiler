@@ -1,184 +1,130 @@
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <memory>
 #include "datatype.h"
 #include <fmt/format.h>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
 
-class Token
-{
+class Token {
 public:
-    virtual ~Token() = default;
+  virtual ~Token() = default;
 
 protected:
-    virtual void print(std::ostream &os) const = 0;
+  virtual void print(std::ostream &os) const = 0;
 
-    friend std::ostream &operator<<(std::ostream &os, const Token &token)
-    {
-        token.print(os);
-        return os;
-    }
+  friend std::ostream &operator<<(std::ostream &os, const Token &token) {
+    token.print(os);
+    return os;
+  }
 };
 
-inline std::string to_string(const Token &token)
-{
-    std::ostringstream oss;
-    oss << token; // calls your friend operator<<
-    return oss.str();
+inline std::string to_string(const Token &token) {
+  std::ostringstream oss;
+  oss << token; // calls your friend operator<<
+  return oss.str();
 }
 
 using Tokens = std::vector<std::unique_ptr<Token>>;
 
-class AssignmentToken : public Token
-{
+class AssignmentToken : public Token {
 protected:
-    void print(std::ostream &os) const override
-    {
-        os << "AssignmentOperatorToken";
-    }
+  void print(std::ostream &os) const override {
+    os << "AssignmentOperatorToken";
+  }
 };
 
-class OpenParenToken : public Token
-{
+class OpenParenToken : public Token {
 protected:
-    void print(std::ostream &os) const override
-    {
-        os << "OpenParenToken";
-    }
+  void print(std::ostream &os) const override { os << "OpenParenToken"; }
 };
 
-class ClosedParenToken : public Token
-{
+class ClosedParenToken : public Token {
 protected:
-    void print(std::ostream &os) const override
-    {
-        os << "ClosedParenToken";
-    }
+  void print(std::ostream &os) const override { os << "ClosedParenToken"; }
 };
 
-class OpenSquigglyToken : public Token
-{
+class OpenSquigglyToken : public Token {
 protected:
-    void print(std::ostream &os) const override
-    {
-        os << "OpenSquigglyToken";
-    }
+  void print(std::ostream &os) const override { os << "OpenSquigglyToken"; }
 };
 
-class ClosedSquigglyToken : public Token
-{
+class ClosedSquigglyToken : public Token {
 protected:
-    void print(std::ostream &os) const override
-    {
-        os << "ClosedSquigglyToken";
-    }
+  void print(std::ostream &os) const override { os << "ClosedSquigglyToken"; }
 };
 
-class TerminatorToken : public Token
-{
+class TerminatorToken : public Token {
 protected:
-    void print(std::ostream &os) const override
-    {
-        os << "TerminatorToken";
-    }
+  void print(std::ostream &os) const override { os << "TerminatorToken"; }
 };
 
-class LiteralToken : public Token
-{
-};
+class LiteralToken : public Token {};
 
-class ReturnToken : public Token
-{
+class ReturnToken : public Token {
 protected:
-    void print(std::ostream &os) const override
-    {
-        os << "ReturnToken";
-    }
+  void print(std::ostream &os) const override { os << "ReturnToken"; }
 };
 
-class IntegerLiteralToken : public LiteralToken
-{
+class IntegerLiteralToken : public LiteralToken {
 public:
-    int value;
+  int value;
 
-    explicit IntegerLiteralToken(int value)
-        : value{value}
-    {
-    }
+  explicit IntegerLiteralToken(int value) : value{value} {}
 
 protected:
-    void print(std::ostream &os) const override
-    {
-        os << "IntegerLiteralToken:" << value;
-    }
+  void print(std::ostream &os) const override {
+    os << "IntegerLiteralToken:" << value;
+  }
 };
 
-class DataTypeToken : public Token
-{
+class DataTypeToken : public Token {
 public:
-    Datatype type;
+  Datatype type;
 
-    explicit DataTypeToken(Datatype type)
-        : type{type}
-    {
-    }
+  explicit DataTypeToken(Datatype type) : type{type} {}
 
 protected:
-    void print(std::ostream &os) const override
-    {
-        os << "DatatypeToken: " << type;
-    }
+  void print(std::ostream &os) const override {
+    os << "DatatypeToken: " << type;
+  }
 };
 
-class IdentifierToken : public Token
-{
+class IdentifierToken : public Token {
 public:
-    std::string name;
+  std::string name;
 
-    IdentifierToken(std::string name)
-        : name{name}
-    {
-    }
+  IdentifierToken(std::string name) : name{name} {}
 
 protected:
-    void print(std::ostream &os) const override
-    {
-        os << "Identifiertoken: " << name;
-    }
+  void print(std::ostream &os) const override {
+    os << "Identifiertoken: " << name;
+  }
 };
 
-class TokenStream
-{
+class TokenStream {
 
-    std::vector<std::unique_ptr<Token>> tokens;
-    size_t current = 0;
+  std::vector<std::unique_ptr<Token>> tokens;
+  size_t current = 0;
 
 public:
-    explicit TokenStream(std::vector<std::unique_ptr<Token>> tokens)
-        : tokens(std::move(tokens))
-    {
-    }
+  explicit TokenStream(std::vector<std::unique_ptr<Token>> tokens)
+      : tokens(std::move(tokens)) {}
 
-    size_t size() const
-    {
-        return tokens.size();
-    }
+  size_t size() const { return tokens.size(); }
 
-    Token *peek()
-    {
-        return current < tokens.size() ? tokens[current].get() : nullptr;
-    }
+  Token *peek() {
+    return current < tokens.size() ? tokens[current].get() : nullptr;
+  }
 
-    Token *peek(int ahead)
-    {
-        return current + ahead < tokens.size() ? tokens[current + ahead].get() : nullptr;
-    }
+  Token *peek(int ahead) {
+    return current + ahead < tokens.size() ? tokens[current + ahead].get()
+                                           : nullptr;
+  }
 
-    Token *consume()
-    {
-        return current < tokens.size() ? tokens[current++].get() : nullptr;
-    }
+  Token *consume() {
+    return current < tokens.size() ? tokens[current++].get() : nullptr;
+  }
 };
