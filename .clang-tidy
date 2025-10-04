@@ -1,0 +1,14 @@
+Checks: >
+  bugprone-*,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  modernize-*
+    -modernize-use-trailing-return-type
+
+WarningsAsErrors: ''
+
+HeaderFilterRegex: '^(src|include|tests)/'
+
+FormatStyle: none
+
+CheckOptions: []

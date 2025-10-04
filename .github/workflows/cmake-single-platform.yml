@@ -9,12 +9,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v4
       with:
         submodules: 'recursive'
 
     - name: Build
       run: bash build.sh build
+
+    - name: Run clang-format
+      run: |
+        find src include tests -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
+
+    - name: Run clang-tidy
+      run: |
+        find src include tests -name '*.cpp' -o -name '*.h' | xargs clang-tidy -p build
 
     - name: Test
       working-directory: ${{github.workspace}}/build
