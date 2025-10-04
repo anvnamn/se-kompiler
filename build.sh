@@ -25,7 +25,10 @@ case "$COMMAND" in
         echo "Configuring project..."
         mkdir -p "$BUILD_DIR"
         cd "$BUILD_DIR"
-        cmake -G "$GENERATOR" -DCMAKE_BUILD_TYPE="$CONFIG" ..
+        cmake -G "$GENERATOR" \
+              -DCMAKE_BUILD_TYPE="$CONFIG" \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              ..
         echo "Building project..."
         cmake --build . -- -j$(nproc)
         ;;
