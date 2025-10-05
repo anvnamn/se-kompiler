@@ -50,7 +50,8 @@ TEST(LexerTest, BasicProgram) {
   expected_tokens.emplace_back(
       std::make_unique<IdentifierToken>("foersta_talet"));
   expected_tokens.emplace_back(std::make_unique<AssignmentToken>());
-  expected_tokens.emplace_back(std::make_unique<IntegerLiteralToken>(1337));
+  expected_tokens.emplace_back(std::make_unique<IntegerLiteralToken>(
+      1337)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   expected_tokens.emplace_back(std::make_unique<TerminatorToken>());
   expected_tokens.emplace_back(std::make_unique<ReturnToken>());
   expected_tokens.emplace_back(std::make_unique<IntegerLiteralToken>(1));

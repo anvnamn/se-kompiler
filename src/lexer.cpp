@@ -2,6 +2,12 @@
 #include <sstream>
 #include <vector>
 
+// Data types
+constexpr std::string_view INTEGER_STR = "heltal";
+
+// Keywords
+constexpr std::string_view RETURN_STR = "returnera";
+
 TokenStream tokenize(const std::string &src) {
   std::istringstream iss(src);
   std::string word;
@@ -14,14 +20,14 @@ TokenStream tokenize(const std::string &src) {
   std::vector<std::unique_ptr<Token>> tokens;
 
   for (auto word : words) {
-    int pos = 0;
+    size_t pos = 0;
     while (pos < word.length()) {
-      if (word.find("heltal", pos) == 0) {
+      if (word.find(INTEGER_STR, pos) == 0) {
         tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
-        pos += 6;
-      } else if (word.find("returnera", pos) == 0) {
+        pos += INTEGER_STR.length();
+      } else if (word.find(RETURN_STR, pos) == 0) {
         tokens.emplace_back(std::make_unique<ReturnToken>());
-        pos += 9;
+        pos += RETURN_STR.length();
       } else if (word[pos] == '=') {
         tokens.emplace_back(std::make_unique<AssignmentToken>());
         pos += 1;
@@ -42,8 +48,8 @@ TokenStream tokenize(const std::string &src) {
         pos += 1;
       } else if (isdigit(word[pos])) {
         std::string num;
-        for (auto it = word.begin() + pos; it != word.end(); ++it) {
-          char c = *it;
+        for (size_t i = pos; i < word.length(); ++i) {
+          char c = word[i];
           if (isdigit(c)) {
             num += c;
           } else {
@@ -54,8 +60,8 @@ TokenStream tokenize(const std::string &src) {
         pos += num.length();
       } else if (isalpha(word[pos]) || word[pos] == '_') {
         std::string identifier;
-        for (auto it = word.begin() + pos; it != word.end(); ++it) {
-          char c = *it;
+        for (size_t i = pos; i < word.length(); ++i) {
+          char c = word[i];
           if (isalnum(c) || c == '_') {
             identifier += c;
           } else {

@@ -10,9 +10,15 @@
 
 class Token {
 public:
+  Token(const Token &) = delete;
+  Token &operator=(const Token &) = delete;
+  Token(Token &&) = delete;
+  Token &operator=(Token &&) = delete;
+
   virtual ~Token() = default;
 
 protected:
+  Token() = default;
   virtual void print(std::ostream &os) const = 0;
 
   friend std::ostream &operator<<(std::ostream &os, const Token &token) {
