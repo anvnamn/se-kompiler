@@ -153,6 +153,10 @@ public:
 
 protected:
   void print(std::ostream &os) const override {
-    os << "Return: " << expression;
+    if (expression) {
+      os << "Return: " << expression;
+    } else {
+      "Return: void";
+    }
   }
 };
