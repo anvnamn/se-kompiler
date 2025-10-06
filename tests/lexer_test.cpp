@@ -38,6 +38,7 @@ TEST(LexerTest, BasicProgram) {
 
   TokenStream actual_ts = tokenize(source_file);
 
+  constexpr int int_literal = 1337;
   Tokens expected_tokens;
   expected_tokens.emplace_back(
       std::make_unique<DataTypeToken>(Datatype::INTEGER));
@@ -50,8 +51,8 @@ TEST(LexerTest, BasicProgram) {
   expected_tokens.emplace_back(
       std::make_unique<IdentifierToken>("foersta_talet"));
   expected_tokens.emplace_back(std::make_unique<AssignmentToken>());
-  expected_tokens.emplace_back(std::make_unique<IntegerLiteralToken>(
-      1337)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  expected_tokens.emplace_back(
+      std::make_unique<IntegerLiteralToken>(int_literal));
   expected_tokens.emplace_back(std::make_unique<TerminatorToken>());
   expected_tokens.emplace_back(std::make_unique<ReturnToken>());
   expected_tokens.emplace_back(std::make_unique<IntegerLiteralToken>(1));

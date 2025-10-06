@@ -4,9 +4,15 @@
 
 class ASTNode {
 public:
+  ASTNode(const ASTNode &) = delete;
+  ASTNode &operator=(const ASTNode &) = delete;
+  ASTNode(ASTNode &&) = delete;
+  ASTNode &operator=(ASTNode &&) = delete;
+
   virtual ~ASTNode() = default;
 
 protected:
+  ASTNode() = default;
   virtual void print(std::ostream &os) const = 0;
 
   friend std::ostream &operator<<(std::ostream &os, const ASTNode &node) {
@@ -34,10 +40,7 @@ protected:
   void print(std::ostream &os) const override {}
 };
 
-class ExpressionNode : public ASTNode {
-public:
-  virtual ~ExpressionNode() = default;
-};
+class ExpressionNode : public ASTNode {};
 
 class OperandNode : public ExpressionNode {};
 
@@ -156,7 +159,7 @@ protected:
     if (expression) {
       os << "Return: " << expression;
     } else {
-      "Return: void";
+      os << "Return: void";
     }
   }
 };

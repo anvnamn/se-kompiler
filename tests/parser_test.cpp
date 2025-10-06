@@ -19,9 +19,10 @@ TEST(ReturnStatement, VoidReturn) {
 }
 
 TEST(ReturnStatement, IntReturn) {
+  constexpr int return_value = 1337;
   Tokens tokens;
   tokens.emplace_back(std::make_unique<ReturnToken>());
-  tokens.emplace_back(std::make_unique<IntegerLiteralToken>(1337));
+  tokens.emplace_back(std::make_unique<IntegerLiteralToken>(return_value));
   tokens.emplace_back(std::make_unique<TerminatorToken>());
 
   auto ts = TokenStream{std::move(tokens)};
@@ -37,7 +38,7 @@ TEST(ReturnStatement, IntReturn) {
       dynamic_cast<IntegerLiteralNode *>(return_node->expression.get());
   ASSERT_NE(int_expr, nullptr) << "Expected an IntegerLiteralNode";
 
-  EXPECT_EQ(int_expr->value, 1337);
+  EXPECT_EQ(int_expr->value, return_value);
 }
 
 TEST(ReturnStatement, MissingTerminator) {
@@ -100,7 +101,7 @@ TEST(FunctionDeclaration, IntReturnNoArgs) {
 }
 
 TEST(FunctionDefinition, IntReturnNoArgs) {
-  int func_return_value = 123;
+  constexpr int func_return_value = 123;
   Tokens tokens;
   tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
   tokens.emplace_back(std::make_unique<IdentifierToken>("min_heltalsfunktion"));
@@ -108,7 +109,7 @@ TEST(FunctionDefinition, IntReturnNoArgs) {
   tokens.emplace_back(std::make_unique<ClosedParenToken>());
   tokens.emplace_back(std::make_unique<OpenSquigglyToken>());
   tokens.emplace_back(std::make_unique<ReturnToken>());
-  tokens.emplace_back(std::make_unique<IntegerLiteralToken>(123));
+  tokens.emplace_back(std::make_unique<IntegerLiteralToken>(func_return_value));
   tokens.emplace_back(std::make_unique<TerminatorToken>());
   tokens.emplace_back(std::make_unique<ClosedSquigglyToken>());
 
