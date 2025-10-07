@@ -57,7 +57,7 @@ TEST(ReturnStatement, MissingTerminator) {
   }
 }
 
-TEST(FunctionDeclaration, VoidReturnNoArgs) {
+TEST(FunctionDeclaration, VoidReturnNoParams) {
   Tokens tokens;
   tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::VOID));
   tokens.emplace_back(std::make_unique<IdentifierToken>("min_funktion"));
@@ -78,7 +78,7 @@ TEST(FunctionDeclaration, VoidReturnNoArgs) {
   ASSERT_EQ(return_node->parameters.size(), 0) << "Expected no parameters";
 }
 
-TEST(FunctionDeclaration, IntReturnNoArgs) {
+TEST(FunctionDeclaration, IntReturnNoParams) {
   Tokens tokens;
   tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
   tokens.emplace_back(std::make_unique<IdentifierToken>("min_heltalsfunktion"));
@@ -100,7 +100,44 @@ TEST(FunctionDeclaration, IntReturnNoArgs) {
   ASSERT_EQ(func_decl_node->parameters.size(), 0) << "Expected no parameters";
 }
 
-TEST(FunctionDefinition, IntReturnNoArgs) {
+TEST(FunctionDefinition, VoidReturnNoParams) {
+  constexpr int func_return_value = 123;
+  Tokens tokens;
+  tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::VOID));
+  tokens.emplace_back(std::make_unique<IdentifierToken>("min_heltalsfunktion"));
+  tokens.emplace_back(std::make_unique<OpenParenToken>());
+  tokens.emplace_back(std::make_unique<ClosedParenToken>());
+  tokens.emplace_back(std::make_unique<OpenSquigglyToken>());
+  tokens.emplace_back(std::make_unique<ReturnToken>());
+  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  tokens.emplace_back(std::make_unique<ClosedSquigglyToken>());
+
+  auto ts = TokenStream{std::move(tokens)};
+  auto ast = parse_tokens(ts);
+
+  ASSERT_TRUE(ast.statements.size() == 1) << fmt::format(
+      "Expected program with 1 statement, actual: {}", ast.statements.size());
+
+  auto func_def_node =
+      dynamic_cast<FunctionDefinitionNode *>(ast.statements[0].get());
+  ASSERT_NE(func_def_node, nullptr) << "Expected a FunctionDefinitionNode";
+  ASSERT_EQ(func_def_node->returnType, Datatype::VOID)
+      << "Expected void return type";
+  ASSERT_EQ(func_def_node->parameters.size(), 0) << "Expected no parameters";
+
+  auto function_body = dynamic_cast<ScopeNode *>(func_def_node->body.get());
+  ASSERT_TRUE(function_body->statements.size() == 1)
+      << fmt::format("Expected function body with 1 statement, actual: {}",
+                     function_body->statements.size());
+
+  auto return_node =
+      dynamic_cast<ReturnNode *>(function_body->statements[0].get());
+  ASSERT_NE(return_node, nullptr) << "Expected a ReturnNode";
+
+  ASSERT_TRUE(return_node->expression == nullptr);
+}
+
+TEST(FunctionDefinition, IntReturnNoParams) {
   constexpr int func_return_value = 123;
   Tokens tokens;
   tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
