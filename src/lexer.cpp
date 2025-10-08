@@ -4,6 +4,7 @@
 
 // Data types
 constexpr std::string_view INTEGER_STR = "heltal";
+constexpr std::string_view VOID_STR = "tom";
 
 // Keywords
 constexpr std::string_view RETURN_STR = "returnera";
@@ -25,6 +26,9 @@ TokenStream tokenize(const std::string &src) {
       if (word.find(INTEGER_STR, pos) == 0) {
         tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
         pos += INTEGER_STR.length();
+      } else if (word.find(VOID_STR, pos) == 0) {
+        tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::VOID));
+        pos += VOID_STR.length();
       } else if (word.find(RETURN_STR, pos) == 0) {
         tokens.emplace_back(std::make_unique<ReturnToken>());
         pos += RETURN_STR.length();

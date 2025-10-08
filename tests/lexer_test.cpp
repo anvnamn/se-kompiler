@@ -1,22 +1,12 @@
 #include "lexer.h"
+#include "test_utils.h"
 #include "token.h"
 #include <filesystem>
 #include <fmt/core.h>
 #include <fmt/ostream.h>
-#include <fstream>
 #include <gtest/gtest.h>
 #include <string>
 #include <typeinfo>
-
-std::string read_file(const std::string &filename) {
-  std::string path = std::string(TEST_DATA_DIR) + "/" + filename;
-  std::ifstream ifs(path);
-  if (!ifs)
-    throw std::runtime_error("Failed to open file: " + path);
-
-  return std::string(std::istreambuf_iterator<char>(ifs),
-                     std::istreambuf_iterator<char>());
-}
 
 void compare_tokenstreams(TokenStream &actual_ts, TokenStream &expected_ts) {
 
@@ -38,6 +28,8 @@ TEST(LexerTest, BasicProgram) {
 
   TokenStream actual_ts = tokenize(source_file);
 
+  const std::string identifier_name = "foersta_talet";
+  constexpr int literal_value = 1337;
   Tokens expected_tokens;
   expected_tokens.emplace_back(
       std::make_unique<DataTypeToken>(Datatype::INTEGER));
@@ -48,13 +40,14 @@ TEST(LexerTest, BasicProgram) {
   expected_tokens.emplace_back(
       std::make_unique<DataTypeToken>(Datatype::INTEGER));
   expected_tokens.emplace_back(
-      std::make_unique<IdentifierToken>("foersta_talet"));
+      std::make_unique<IdentifierToken>(identifier_name));
   expected_tokens.emplace_back(std::make_unique<AssignmentToken>());
-  expected_tokens.emplace_back(std::make_unique<IntegerLiteralToken>(
-      1337)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  expected_tokens.emplace_back(
+      std::make_unique<IntegerLiteralToken>(literal_value));
   expected_tokens.emplace_back(std::make_unique<TerminatorToken>());
   expected_tokens.emplace_back(std::make_unique<ReturnToken>());
-  expected_tokens.emplace_back(std::make_unique<IntegerLiteralToken>(1));
+  expected_tokens.emplace_back(
+      std::make_unique<IdentifierToken>(identifier_name));
   expected_tokens.emplace_back(std::make_unique<TerminatorToken>());
   expected_tokens.emplace_back(std::make_unique<ClosedSquigglyToken>());
 
