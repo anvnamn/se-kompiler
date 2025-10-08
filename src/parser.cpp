@@ -11,6 +11,9 @@ std::unique_ptr<ExpressionNode> parse_expression(TokenStream &ts) {
   if (auto t = dynamic_cast<IntegerLiteralToken *>(ts.peek())) {
     ts.consume();
     return std::make_unique<IntegerLiteralNode>(t->value);
+  } else if (auto t = dynamic_cast<IdentifierToken *>(ts.peek())) {
+    ts.consume();
+    return std::make_unique<IdentifierNode>(t->name);
   }
   return nullptr;
 }
@@ -49,7 +52,7 @@ std::unique_ptr<ScopeNode> parse_scope(TokenStream &ts) {
 
 std::unique_ptr<StatementNode> parse_statement(TokenStream &ts) {
 
-  // Return node
+  // Return statement
   if (dynamic_cast<ReturnToken *>(ts.peek())) {
     ts.consume(); // Consume return token
     auto return_node = std::make_unique<ReturnNode>(parse_expression(ts));
@@ -58,7 +61,20 @@ std::unique_ptr<StatementNode> parse_statement(TokenStream &ts) {
     }
     return return_node;
   }
-  // Function declaration/definition
+  // Assignment statement
+  else if (dynamic_cast<IdentifierToken *>(ts.peek()) &&
+           dynamic_cast<AssignmentToken *>(ts.peek(1))) {
+    std::string variable_name =
+        dynamic_cast<IdentifierToken *>(ts.consume())->name;
+    ts.consume(); // Consume assignment token
+    auto assignment_node = std::make_unique<AssignmentNode>(
+        std::make_unique<IdentifierNode>(variable_name), parse_expression(ts));
+    if (!dynamic_cast<TerminatorToken *>(ts.consume())) {
+      throw std::runtime_error("Missing terminator after assignment statement");
+    }
+    return assignment_node;
+  }
+  // Function declaration/definition statement
   else if (dynamic_cast<DataTypeToken *>(ts.peek()) &&
            dynamic_cast<IdentifierToken *>(ts.peek(1)) &&
            dynamic_cast<OpenParenToken *>(ts.peek(2))) {
@@ -75,6 +91,33 @@ std::unique_ptr<StatementNode> parse_statement(TokenStream &ts) {
           return_type, std::make_unique<IdentifierNode>(name),
           std::move(params), std::move(parse_scope(ts)));
     }
+  }
+  // Variable declaration/initialization statement
+  else if (dynamic_cast<DataTypeToken *>(ts.peek()) &&
+           dynamic_cast<IdentifierToken *>(ts.peek(1))) {
+    Datatype variable_type = dynamic_cast<DataTypeToken *>(ts.consume())->type;
+    std::string name = dynamic_cast<IdentifierToken *>(ts.consume())->name;
+
+    // Declaration
+    if (dynamic_cast<TerminatorToken *>(ts.peek())) {
+      ts.consume(); // Consume terminator token
+      auto declaration_node = std::make_unique<VariableDeclarationNode>(
+          variable_type, std::make_unique<IdentifierNode>(name));
+      return declaration_node;
+    }
+    // Initialization
+    if (!dynamic_cast<AssignmentToken *>(ts.consume())) {
+      throw std::runtime_error(
+          "Failed to parse variable declaration/definition");
+    }
+    auto initialization_node = std::make_unique<VariableInitializationNode>(
+        variable_type, std::make_unique<IdentifierNode>(name),
+        parse_expression(ts));
+    if (!dynamic_cast<TerminatorToken *>(ts.consume())) {
+      throw std::runtime_error(
+          "Missing terminator after variable initialization");
+    }
+    return initialization_node;
   }
   throw std::runtime_error("Unable to parse statement");
 }

@@ -1,5 +1,6 @@
+#include "lexer.h"
 #include "parser.h"
-#include "token.h"
+#include "test_utils.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -176,4 +177,73 @@ TEST(FunctionDefinition, IntReturnNoParams) {
       dynamic_cast<IntegerLiteralNode *>(return_node->expression.get());
   ASSERT_NE(int_lit_node, nullptr) << "Expected an IntegerLiteralNode";
   ASSERT_EQ(int_lit_node->value, func_return_value);
+}
+
+TEST(VariableDeclaration, Integer) {
+  Tokens tokens;
+  tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
+  tokens.emplace_back(std::make_unique<IdentifierToken>("heltal"));
+  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  auto ts = TokenStream{std::move(tokens)};
+  auto ast = parse_tokens(ts);
+
+  ASSERT_TRUE(ast.statements.size() == 1) << fmt::format(
+      "Expected program with 1 statement, actual: {}", ast.statements.size());
+  auto variable_decl_node =
+      dynamic_cast<VariableDeclarationNode *>(ast.statements[0].get());
+  ASSERT_NE(variable_decl_node, nullptr)
+      << "Expected a VariableDeclarationNode";
+  ASSERT_EQ(variable_decl_node->datatype, Datatype::INTEGER);
+}
+
+TEST(VariableInitialization, IntegerLiteral) {
+  constexpr int literal_value = 123123;
+  Tokens tokens;
+  tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
+  tokens.emplace_back(std::make_unique<IdentifierToken>("en_variabel"));
+  tokens.emplace_back(std::make_unique<AssignmentToken>());
+  tokens.emplace_back(std::make_unique<IntegerLiteralToken>(literal_value));
+  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  auto ts = TokenStream{std::move(tokens)};
+  auto ast = parse_tokens(ts);
+
+  ASSERT_TRUE(ast.statements.size() == 1) << fmt::format(
+      "Expected program with 1 statement, actual: {}", ast.statements.size());
+  auto variable_init_node =
+      dynamic_cast<VariableInitializationNode *>(ast.statements[0].get());
+  ASSERT_NE(variable_init_node, nullptr)
+      << "Expected a VariableInitializationNode";
+  ASSERT_EQ(variable_init_node->datatype, Datatype::INTEGER);
+
+  auto expr_node =
+      dynamic_cast<IntegerLiteralNode *>(variable_init_node->expr.get());
+  ASSERT_NE(variable_init_node, nullptr) << "Expected an IntegerLiteralNode";
+  ASSERT_EQ(expr_node->value, literal_value);
+}
+
+TEST(VariableAssignment, IntegerLiteral) {
+  constexpr int literal_value = 112233;
+  Tokens tokens;
+  tokens.emplace_back(std::make_unique<IdentifierToken>("heltal"));
+  tokens.emplace_back(std::make_unique<AssignmentToken>());
+  tokens.emplace_back(std::make_unique<IntegerLiteralToken>(literal_value));
+  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  auto ts = TokenStream{std::move(tokens)};
+  auto ast = parse_tokens(ts);
+
+  ASSERT_TRUE(ast.statements.size() == 1) << fmt::format(
+      "Expected program with 1 statement, actual: {}", ast.statements.size());
+  auto assignment_node =
+      dynamic_cast<AssignmentNode *>(ast.statements[0].get());
+  ASSERT_NE(assignment_node, nullptr) << "Expected an AssignmentNode";
+  auto int_lit_node =
+      dynamic_cast<IntegerLiteralNode *>(assignment_node->expression.get());
+  ASSERT_NE(int_lit_node, nullptr) << "Expected an IntegerLiteralNode";
+  ASSERT_EQ(int_lit_node->value, literal_value);
+}
+
+TEST(ParseProgram, HelloWorld) {
+  auto const source_file = read_file("hello_world.se");
+  TokenStream ts = tokenize(source_file);
+  auto ast = parse_tokens(ts);
 }

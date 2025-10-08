@@ -163,3 +163,49 @@ protected:
     }
   }
 };
+
+class AssignmentNode : public StatementNode {
+public:
+  std::unique_ptr<IdentifierNode> variable;
+  std::unique_ptr<ExpressionNode> expression;
+
+  AssignmentNode(std::unique_ptr<IdentifierNode> variable,
+                 std::unique_ptr<ExpressionNode> expression)
+      : variable(std::move(variable)), expression(std::move(expression)) {}
+
+protected:
+  void print(std::ostream &os) const override {
+    os << "Assignment: " << variable << "=" << expression;
+  }
+};
+
+class VariableDeclarationNode : public StatementNode {
+public:
+  Datatype datatype;
+  std::unique_ptr<IdentifierNode> variable;
+
+  VariableDeclarationNode(Datatype datatype,
+                          std::unique_ptr<IdentifierNode> variable)
+      : datatype(datatype), variable(std::move(variable)) {}
+
+protected:
+  void print(std::ostream &os) const override {
+    os << "Variable declaration: " << variable;
+  }
+};
+
+class VariableInitializationNode : public VariableDeclarationNode {
+public:
+  std::unique_ptr<ExpressionNode> expr;
+
+  VariableInitializationNode(Datatype datatype,
+                             std::unique_ptr<IdentifierNode> variable,
+                             std::unique_ptr<ExpressionNode> expr)
+      : VariableDeclarationNode(std::move(datatype), std::move(variable)),
+        expr(std::move(expr)) {}
+
+protected:
+  void print(std::ostream &os) const override {
+    os << "Variable initialization: " << variable << "=" << expr;
+  }
+};
