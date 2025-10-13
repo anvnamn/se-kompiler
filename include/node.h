@@ -1,3 +1,6 @@
+#pragma once
+
+#include "symbol.h"
 #include "token.h"
 #include <fmt/core.h>
 #include <ostream>
@@ -77,6 +80,7 @@ protected:
 class IdentifierNode : public OperandNode {
 public:
   std::string name;
+  std::shared_ptr<VariableInfo> variable_annotation;
 
   explicit IdentifierNode(std::string name) : name(name) {}
 

@@ -22,6 +22,18 @@ target_link_libraries(
   GTest::gmock_main
 )
 
+add_executable(
+  semantic_analyzer_test
+  semantic_analyzer_test.cpp
+  )
+
+target_link_libraries(
+  semantic_analyzer_test
+  mycompiler_lib
+  GTest::gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(lexer_test)
 gtest_discover_tests(parser_test)
+gtest_discover_tests(semantic_analyzer_test)
