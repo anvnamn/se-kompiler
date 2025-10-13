@@ -32,17 +32,6 @@ inline std::string to_string(const ASTNode &node) {
 
 class StatementNode : public ASTNode {};
 
-class Program : public ASTNode {
-public:
-  std::vector<std::unique_ptr<StatementNode>> statements;
-
-  Program(std::vector<std::unique_ptr<StatementNode>> statements)
-      : statements(std::move(statements)) {}
-
-protected:
-  void print(std::ostream &os) const override {}
-};
-
 class ExpressionNode : public ASTNode {};
 
 class OperandNode : public ExpressionNode {};

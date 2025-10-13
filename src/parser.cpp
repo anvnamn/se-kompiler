@@ -122,10 +122,10 @@ std::unique_ptr<StatementNode> parse_statement(TokenStream &ts) {
   throw std::runtime_error("Unable to parse statement");
 }
 
-Program parse_tokens(TokenStream &ts) {
+ScopeNode parse_tokens(TokenStream &ts) {
   std::vector<std::unique_ptr<StatementNode>> statements;
   while (ts.peek()) {
     statements.emplace_back(parse_statement(ts));
   }
-  return Program(std::move(statements));
+  return ScopeNode(std::move(statements));
 }

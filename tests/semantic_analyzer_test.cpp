@@ -15,7 +15,7 @@ TEST(SemanticAnalyzer, AnnotateGlobalVar) {
   std::vector<std::unique_ptr<StatementNode>> statements;
   statements.push_back(std::move(var_decl));
 
-  Program program(std::move(statements));
+  ScopeNode program(std::move(statements));
 
   ASSERT_EQ(var_decl_ptr->variable->variable_annotation, nullptr);
 
@@ -46,7 +46,7 @@ TEST(SemanticAnalyzer, DuplicateGlobalVar) {
     statements.push_back(std::move(var_decl));
   }
 
-  Program program(std::move(statements));
+  ScopeNode program(std::move(statements));
 
   auto analyzer = SemanticAnalyzer();
   ASSERT_ANY_THROW(analyzer.analyze_program(program));

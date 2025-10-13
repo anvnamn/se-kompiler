@@ -1,13 +1,17 @@
 #include "semantic_analyzer.h"
 #include "fmt/format.h"
 
-void SemanticAnalyzer::analyze_program(Program &ast) {
-  scope_stack.push_back(
-      ScopeInfo(ScopeType::Global)); // Push global scope onto scope stack.
-
+void SemanticAnalyzer::analyze_scope(ScopeNode &ast) {
   for (const auto &node : ast.statements) {
     analyze_symbols(node);
   }
+}
+
+void SemanticAnalyzer::analyze_program(ScopeNode &ast) {
+  scope_stack.push_back(
+      ScopeInfo(ScopeType::Global)); // Push global scope onto scope stack.
+
+  analyze_scope(ast);
 }
 
 void SemanticAnalyzer::analyze_symbols(
