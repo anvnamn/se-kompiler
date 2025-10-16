@@ -1,3 +1,5 @@
+#pragma once
+
 #include "node.h"
 #include "symbol.h"
 #include <memory>
@@ -5,11 +7,11 @@
 
 class SemanticAnalyzer {
 public:
-  void analyze_program(ScopeNode &ast);
+  void analyze_program(ScopeNode *ast);
 
-private:
   std::vector<ScopeInfo> scope_stack;
-  void analyze_scope(ScopeNode &ast);
+  std::map<std::string, FunctionInfo> functions;
+  void analyze_scope(ScopeNode *ast);
 
-  void analyze_symbols(std::unique_ptr<StatementNode> const &node);
+  void analyze_var_decl(VariableDeclarationNode *var_decl);
 };

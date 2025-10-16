@@ -26,8 +26,8 @@ struct VariableInfo {
 
 struct FunctionInfo {
   std::string name;
-  Datatype returnType;
-  std::vector<Datatype> parameterTypes;
+  Datatype return_type;
+  std::vector<Datatype> param_types;
   bool defined = false;
 };
 
@@ -36,7 +36,6 @@ enum class ScopeType { Function, Block, Global };
 struct ScopeInfo {
   ScopeInfo(ScopeType type) : type(type){};
   ScopeType type;
-  unsigned int stack_size = 0;
+  int stack_size = 0;
   std::map<std::string, std::shared_ptr<VariableInfo>> variables;
-  std::map<std::string, std::shared_ptr<FunctionInfo>> functions;
 };
