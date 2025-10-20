@@ -52,7 +52,7 @@ TEST(GlobalVar, DuplicateGlobalVar) {
   ASSERT_ANY_THROW(analyzer.analyze_program(program.get()));
 }
 
-TEST(BlockScope, StackVars) {
+TEST(BlockScope, DeclareIntegers) {
   std::vector<std::unique_ptr<StatementNode>> block_statements;
   const auto var_names = {"var_one", "var_two"};
 
@@ -73,4 +73,57 @@ TEST(BlockScope, StackVars) {
 
   ASSERT_EQ(analyzer.scope_stack.size(), 2);
   ASSERT_EQ(analyzer.scope_stack.back().stack_size, 8);
+}
+
+TEST(BlockScope, DuplicateDeclaration) {
+  std::vector<std::unique_ptr<StatementNode>> block_statements;
+  const auto var_names = {"duplicate_var", "duplicate_var"};
+
+  for (auto name : var_names) {
+    auto var_decl = std::make_unique<VariableDeclarationNode>(
+        Datatype::INTEGER, std::make_unique<IdentifierNode>(name));
+
+    block_statements.push_back(std::move(var_decl));
+  }
+
+  auto scope_node = std::make_unique<ScopeNode>(std::move(block_statements));
+
+  std::vector<std::unique_ptr<StatementNode>> program_statements;
+  program_statements.push_back(std::move(scope_node));
+  auto program = std::make_unique<ScopeNode>(std::move(program_statements));
+  auto analyzer = SemanticAnalyzer();
+  ASSERT_ANY_THROW(analyzer.analyze_program(program.get()));
+}
+
+TEST(BlockScope, NestedScopes) {
+  const auto var_name = "nested_var";
+
+  std::unique_ptr<ScopeNode> scope = nullptr;
+
+  for (int i{0}; i < 4; i++) {
+    auto var_decl = std::make_unique<VariableDeclarationNode>(
+        Datatype::INTEGER, std::make_unique<IdentifierNode>(var_name));
+
+    std::vector<std::unique_ptr<StatementNode>> block_statements;
+    block_statements.push_back(std::move(var_decl));
+
+    if (!scope) {
+      scope = std::make_unique<ScopeNode>(std::move(block_statements));
+    } else {
+      block_statements.push_back(std::move(scope));
+      scope = std::make_unique<ScopeNode>(std::move(block_statements));
+    }
+  }
+
+  auto analyzer = SemanticAnalyzer();
+  analyzer.analyze_program(scope.get());
+
+  ASSERT_EQ(analyzer.scope_stack.size(), 4);
+  for (int i{0}; i < analyzer.scope_stack.size(); i++) {
+    if (i == 0) {
+      ASSERT_EQ(analyzer.scope_stack[i].type, ScopeType::Global);
+    } else {
+      ASSERT_EQ(analyzer.scope_stack[i].type, ScopeType::Block);
+    }
+  }
 }
