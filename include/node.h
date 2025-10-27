@@ -3,6 +3,7 @@
 #include "symbol.h"
 #include "token.h"
 #include <fmt/core.h>
+#include <optional>
 #include <ostream>
 
 class ASTNode {
@@ -54,7 +55,7 @@ class ScopeNode : public StatementNode {
 public:
   std::vector<std::unique_ptr<StatementNode>> statements;
 
-  ScopeInfo scope_annotation;
+  std::optional<ScopeInfo> scope_annotation;
 
   ScopeNode(std::vector<std::unique_ptr<StatementNode>> statements)
       : statements(std::move(statements)) {}

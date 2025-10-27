@@ -35,7 +35,6 @@ enum class ScopeType { Function, Block, Global };
 
 struct ScopeInfo {
   ScopeInfo(ScopeType type) : type(type){};
-  ScopeInfo() = default;
   ScopeType type;
   int stack_size = 0;
   std::map<std::string, std::shared_ptr<VariableInfo>> variables;

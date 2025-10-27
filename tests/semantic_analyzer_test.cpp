@@ -111,12 +111,12 @@ TEST(BlockScope, DeclareIntegers) {
       dynamic_cast<FunctionDefinitionNode *>(program->statements[0].get());
   ASSERT_EQ(main_func->body->statements.size(), 1);
   const auto scope_annotation = scope_node_ptr->scope_annotation;
-  ASSERT_EQ(scope_annotation.stack_size, 8);
+  ASSERT_EQ(scope_annotation->stack_size, 8);
   for (int i{0}; i < var_names.size(); i++) {
     const auto var_name = var_names[i];
     const auto stack_offset =
-        scope_annotation.variables.at(var_names[i]).get()->stack_offset;
-    ASSERT_TRUE(scope_annotation.variables.contains(var_names[i]));
+        scope_annotation->variables.at(var_names[i]).get()->stack_offset;
+    ASSERT_TRUE(scope_annotation->variables.contains(var_names[i]));
     ASSERT_EQ(stack_offset, expected_stack_offsets[i]);
   }
 }
@@ -182,6 +182,6 @@ TEST(BlockScope, NestedScopes) {
   analyzer.analyze_program(program.get());
 
   for (auto ptr : scope_raw_ptrs) {
-    ASSERT_EQ(ptr->scope_annotation.stack_size, 4);
+    ASSERT_EQ(ptr->scope_annotation->stack_size, 4);
   }
 }
