@@ -54,6 +54,8 @@ class ScopeNode : public StatementNode {
 public:
   std::vector<std::unique_ptr<StatementNode>> statements;
 
+  ScopeInfo scope_annotation;
+
   ScopeNode(std::vector<std::unique_ptr<StatementNode>> statements)
       : statements(std::move(statements)) {}
 

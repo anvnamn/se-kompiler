@@ -14,4 +14,5 @@ public:
   void analyze_scope(ScopeNode *ast);
 
   void analyze_var_decl(VariableDeclarationNode *var_decl);
+  void analyze_func_decl(FunctionDeclarationNode *func_decl);
 };
