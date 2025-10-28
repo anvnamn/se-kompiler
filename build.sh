@@ -6,8 +6,26 @@ GENERATOR="Ninja"
 CONFIG="Debug"  # Change to Release if needed
 
 usage() {
-    echo "Usage: $0 [build|clean]"
+    echo "Usage: $0 [config|build|clean]"
     exit 1
+}
+
+configure() {
+    echo "Configuring project..."
+    mkdir -p "$BUILD_DIR"
+    cd "$BUILD_DIR"
+    cmake -G "$GENERATOR" \
+            -DCMAKE_BUILD_TYPE="$CONFIG" \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            ..
+    cd ..
+}
+
+build() {
+    echo "Building project..."
+    cd "$BUILD_DIR" 
+    cmake --build .
+    cd ..
 }
 
 if [ $# -ne 1 ]; then
@@ -21,16 +39,12 @@ case "$COMMAND" in
         echo "Cleaning build directory..."
         rm -rf "$BUILD_DIR"
         ;;
+    config)
+        configure
+        ;;
     build)
-        echo "Configuring project..."
-        mkdir -p "$BUILD_DIR"
-        cd "$BUILD_DIR"
-        cmake -G "$GENERATOR" \
-              -DCMAKE_BUILD_TYPE="$CONFIG" \
-              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-              ..
-        echo "Building project..."
-        cmake --build . -- -j$(nproc)
+        configure
+        build
         ;;
     *)
         usage

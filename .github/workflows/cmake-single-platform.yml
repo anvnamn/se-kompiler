@@ -5,7 +5,25 @@ on:
   pull_request:
 
 jobs:
-  build:
+  lint:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+      
+    - name: Generate compile commands
+      run: bash build.sh config
+
+    - name: Run clang-format
+      run: find src include tests -name "*.cpp" -o -name "*.h" | xargs clang-format-14 --dry-run --Werror
+
+    - name: Run clang-tidy
+      run: find src include tests -name '*.cpp' -o -name '*.h' | xargs clang-tidy-14 -p build
+
+  build-test:
     runs-on: ubuntu-22.04
 
     steps:
@@ -17,18 +35,6 @@ jobs:
     - name: Build
       run: bash build.sh build
 
-    - name: Run clang-format
-      run: find src include tests -name "*.cpp" -o -name "*.h" | xargs clang-format-14 --dry-run --Werror
-
-    - name: Run clang-tidy
-      run: find src include tests -name '*.cpp' -o -name '*.h' | xargs clang-tidy-14 -p build
-
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest
-
-    - name: Upload binary
-      uses: actions/upload-artifact@v4
-      with:
-        name: sek
-        path: build/src/sek
