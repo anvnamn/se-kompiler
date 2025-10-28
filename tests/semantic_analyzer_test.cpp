@@ -1,40 +1,8 @@
 #include "node.h"
 #include "semantic_analyzer.h"
+#include "test_utils.h"
 #include <fmt/format.h>
 #include <gtest/gtest.h>
-
-class ProgramBuilder {
-public:
-  ProgramBuilder() {
-    global_scope = std::make_unique<ScopeNode>(
-        std::vector<std::unique_ptr<StatementNode>>{});
-
-    auto main_body = std::make_unique<ScopeNode>(
-        std::vector<std::unique_ptr<StatementNode>>{});
-
-    main_function = std::make_unique<FunctionDefinitionNode>(
-        Datatype::INTEGER, std::make_unique<IdentifierNode>("main"),
-        std::vector<std::unique_ptr<ParameterNode>>{}, std::move(main_body));
-  }
-
-  void add_global_statement(std::unique_ptr<StatementNode> stmt) {
-    global_scope->statements.push_back(std::move(stmt));
-  }
-
-  void add_to_main(std::unique_ptr<StatementNode> stmt) {
-    auto main_body_ptr = static_cast<ScopeNode *>(main_function->body.get());
-    main_body_ptr->statements.push_back(std::move(stmt));
-  }
-
-  std::unique_ptr<ScopeNode> build() {
-    add_global_statement(std::move(main_function));
-    return std::move(global_scope);
-  }
-
-private:
-  std::unique_ptr<ScopeNode> global_scope;
-  std::unique_ptr<FunctionDefinitionNode> main_function;
-};
 
 TEST(GlobalVar, AnnotateGlobalVar) {
   const std::string expected_var_name = "global_var";

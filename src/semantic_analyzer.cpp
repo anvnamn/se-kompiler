@@ -25,13 +25,13 @@ void SemanticAnalyzer::analyze_program(ScopeNode *ast) {
 
   analyze_scope(ast);
 
-  if (!functions.contains("main")) {
+  if (!functions.contains("huvud")) {
     throw std::runtime_error("No main function found");
   } else {
-    if (functions["main"].return_type != Datatype::INTEGER) {
+    if (functions["huvud"].return_type != Datatype::INTEGER) {
       throw std::runtime_error("Main function must return integer");
     }
-    if (!functions["main"].param_types.empty()) {
+    if (!functions["huvud"].param_types.empty()) {
       throw std::runtime_error("Main function can not have parameters");
     }
   }

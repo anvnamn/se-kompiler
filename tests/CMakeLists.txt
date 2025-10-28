@@ -33,6 +33,17 @@ target_link_libraries(
   GTest::gtest_main
 )
 
+add_executable(
+  codegen_test
+  codegen_test.cpp
+  )
+
+target_link_libraries(
+  codegen_test
+  mycompiler_lib
+  GTest::gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(lexer_test)
 gtest_discover_tests(parser_test)

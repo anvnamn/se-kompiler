@@ -1,4 +1,9 @@
+#include "node.h"
+#include <cstdlib>
+#include <filesystem>
 #include <fstream>
+#include <stdexcept>
+#include <string>
 
 std::string read_file(const std::string &filename) {
   std::string path = std::string(TEST_DATA_DIR) + "/" + filename;
@@ -8,4 +13,92 @@ std::string read_file(const std::string &filename) {
 
   return std::string(std::istreambuf_iterator<char>(ifs),
                      std::istreambuf_iterator<char>());
+}
+
+class ProgramBuilder {
+public:
+  ProgramBuilder() {
+    global_scope = std::make_unique<ScopeNode>(
+        std::vector<std::unique_ptr<StatementNode>>{});
+
+    auto main_body = std::make_unique<ScopeNode>(
+        std::vector<std::unique_ptr<StatementNode>>{});
+
+    main_function = std::make_unique<FunctionDefinitionNode>(
+        Datatype::INTEGER, std::make_unique<IdentifierNode>("huvud"),
+        std::vector<std::unique_ptr<ParameterNode>>{}, std::move(main_body));
+  }
+
+  void add_global_statement(std::unique_ptr<StatementNode> stmt) {
+    global_scope->statements.push_back(std::move(stmt));
+  }
+
+  void add_to_main(std::unique_ptr<StatementNode> stmt) {
+    auto main_body_ptr = static_cast<ScopeNode *>(main_function->body.get());
+    main_body_ptr->statements.push_back(std::move(stmt));
+  }
+
+  std::unique_ptr<ScopeNode> build() {
+    add_global_statement(std::move(main_function));
+    return std::move(global_scope);
+  }
+
+private:
+  std::unique_ptr<ScopeNode> global_scope;
+  std::unique_ptr<FunctionDefinitionNode> main_function;
+};
+
+int run_assembly(const std::string &asm_code) {
+  auto temp_dir = std::filesystem::temp_directory_path();
+  auto asm_file = temp_dir / "temp_assembly.s";
+  auto obj_file = temp_dir / "temp_assembly.o";
+  auto bin_file = temp_dir / "temp_binary";
+
+  // Ensure temp files are removed on scope exit
+  struct FileGuard {
+    std::vector<std::filesystem::path> paths;
+
+    FileGuard(std::vector<std::filesystem::path> paths) : paths(paths) {}
+
+    ~FileGuard() {
+      std::error_code ec;
+      for (auto path : paths) {
+        std::filesystem::remove(path, ec);
+      }
+    }
+
+    // Delete copy and move operations
+    FileGuard(const FileGuard &) = delete;
+    FileGuard &operator=(const FileGuard &) = delete;
+    FileGuard(FileGuard &&) = delete;
+    FileGuard &operator=(FileGuard &&) = delete;
+  };
+
+  auto guard = FileGuard(std::vector{asm_file, obj_file, bin_file});
+
+  // Write assembly to file
+  {
+    std::ofstream ofs(asm_file);
+    if (!ofs)
+      throw std::runtime_error("Failed to open temp assembly file");
+    ofs << asm_code;
+  }
+
+  // Assemble
+  if (std::system(("as --64 -o " + obj_file.string() + " " + asm_file.string())
+                      .c_str()) != 0)
+    throw std::runtime_error("Assembly failed");
+
+  // Link
+  if (std::system(
+          ("ld -o " + bin_file.string() + " " + obj_file.string()).c_str()) !=
+      0)
+    throw std::runtime_error("Linking failed");
+
+  int status = std::system(bin_file.string().c_str());
+  if (WIFEXITED(status)) {
+    return WEXITSTATUS(status);
+  } else {
+    throw std::runtime_error("Process did not exit normally");
+  }
 }
