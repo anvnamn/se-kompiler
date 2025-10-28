@@ -1,5 +1,9 @@
+#pragma once
+
+#include "symbol.h"
 #include "token.h"
 #include <fmt/core.h>
+#include <optional>
 #include <ostream>
 
 class ASTNode {
@@ -29,17 +33,6 @@ inline std::string to_string(const ASTNode &node) {
 
 class StatementNode : public ASTNode {};
 
-class Program : public ASTNode {
-public:
-  std::vector<std::unique_ptr<StatementNode>> statements;
-
-  Program(std::vector<std::unique_ptr<StatementNode>> statements)
-      : statements(std::move(statements)) {}
-
-protected:
-  void print(std::ostream &os) const override {}
-};
-
 class ExpressionNode : public ASTNode {};
 
 class OperandNode : public ExpressionNode {};
@@ -62,6 +55,8 @@ class ScopeNode : public StatementNode {
 public:
   std::vector<std::unique_ptr<StatementNode>> statements;
 
+  std::optional<ScopeInfo> scope_annotation;
+
   ScopeNode(std::vector<std::unique_ptr<StatementNode>> statements)
       : statements(std::move(statements)) {}
 
@@ -77,6 +72,7 @@ protected:
 class IdentifierNode : public OperandNode {
 public:
   std::string name;
+  std::shared_ptr<VariableInfo> variable_annotation;
 
   explicit IdentifierNode(std::string name) : name(name) {}
 
