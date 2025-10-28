@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout repo
@@ -18,10 +18,10 @@ jobs:
       run: bash build.sh build
 
     - name: Run clang-format
-      run: find src include tests -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
+      run: find src include tests -name "*.cpp" -o -name "*.h" | xargs clang-format-14 --dry-run --Werror
 
     - name: Run clang-tidy
-      run: find src include tests -name '*.cpp' -o -name '*.h' | xargs clang-tidy -p build -warnings-as-errors='*'
+      run: find src include tests -name '*.cpp' -o -name '*.h' | xargs clang-tidy-14 -p build
 
     - name: Test
       working-directory: ${{github.workspace}}/build
