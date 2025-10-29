@@ -8,12 +8,17 @@ void SemanticAnalyzer::analyze_scope(ScopeNode *ast) {
     } else if (auto func_decl =
                    dynamic_cast<FunctionDeclarationNode *>(node.get())) {
       analyze_func_decl(func_decl);
+    } else if (auto return_stmt = dynamic_cast<ReturnNode *>(node.get())) {
+      // no analysis implemented yet, but should check that
+      // return statement is inside a function scope
+      // return type matches function return type
     } else if (auto scope = dynamic_cast<ScopeNode *>(node.get())) {
       scope_stack.push_back(ScopeInfo(ScopeType::Block)); // Enter block scope
       analyze_scope(scope);
     } else {
-      throw std::runtime_error(
-          "Encountered uninmplemented statement type during analysis");
+      throw std::runtime_error(fmt::format(
+          "Encountered uninmplemented statement type during analysis: {}",
+          to_string(*node)));
     }
   }
   ast->scope_annotation = scope_stack.back(); // Annotate scope
@@ -25,13 +30,13 @@ void SemanticAnalyzer::analyze_program(ScopeNode *ast) {
 
   analyze_scope(ast);
 
-  if (!functions.contains("main")) {
+  if (!functions.contains("huvud")) {
     throw std::runtime_error("No main function found");
   } else {
-    if (functions["main"].return_type != Datatype::INTEGER) {
+    if (functions["huvud"].return_type != Datatype::INTEGER) {
       throw std::runtime_error("Main function must return integer");
     }
-    if (!functions["main"].param_types.empty()) {
+    if (!functions["huvud"].param_types.empty()) {
       throw std::runtime_error("Main function can not have parameters");
     }
   }

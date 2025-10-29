@@ -62,10 +62,11 @@ public:
 
 protected:
   void print(std::ostream &os) const override {
-    os << "ScopeNode";
+    os << "ScopeNode\n{\n";
     for (auto &statement : statements) {
       os << to_string(*statement);
     }
+    os << "}\n";
   }
 };
 
@@ -108,14 +109,14 @@ public:
 
 protected:
   void print(std::ostream &os) const override {
-    os << "Function declaration(" << returnType << functionName;
+    os << "Function declaration: " << returnType << *functionName << "(";
     for (size_t i = 0; i < parameters.size(); i++) {
       os << parameters[i];
       if (i < parameters.size() - 1) {
         os << ", ";
       }
     }
-    os << "))";
+    os << ")";
   }
 };
 
@@ -133,14 +134,19 @@ public:
 
 protected:
   void print(std::ostream &os) const override {
-    os << "Function declaration(" << returnType << functionName;
+    os << "Function definition: " << returnType << *functionName << "(";
     for (size_t i = 0; i < parameters.size(); i++) {
       os << parameters[i];
       if (i < parameters.size() - 1) {
         os << ", ";
       }
     }
-    os << "))";
+    os << ")\n";
+    os << "{\n";
+    for (const auto &stmt : body->statements) {
+      os << *stmt;
+    }
+    os << "}\n";
   }
 };
 
@@ -153,9 +159,9 @@ public:
 protected:
   void print(std::ostream &os) const override {
     if (expression) {
-      os << "Return: " << expression;
+      os << "Return: " << *expression << "\n";
     } else {
-      os << "Return: void";
+      os << "Return: void\n";
     }
   }
 };

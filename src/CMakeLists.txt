@@ -2,6 +2,7 @@ add_library(mycompiler_lib
     lexer.cpp
     parser.cpp
     semantic_analyzer.cpp
+    codegen.cpp
 )
 
 target_link_libraries(mycompiler_lib
