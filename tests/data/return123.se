@@ -1,0 +1,4 @@
+heltal huvud()
+{
+    returnera 123;
+}

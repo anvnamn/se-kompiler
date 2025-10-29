@@ -8,12 +8,17 @@ void SemanticAnalyzer::analyze_scope(ScopeNode *ast) {
     } else if (auto func_decl =
                    dynamic_cast<FunctionDeclarationNode *>(node.get())) {
       analyze_func_decl(func_decl);
+    } else if (auto return_stmt = dynamic_cast<ReturnNode *>(node.get())) {
+      // no analysis implemented yet, but should check that
+      // return statement is inside a function scope
+      // return type matches function return type
     } else if (auto scope = dynamic_cast<ScopeNode *>(node.get())) {
       scope_stack.push_back(ScopeInfo(ScopeType::Block)); // Enter block scope
       analyze_scope(scope);
     } else {
-      throw std::runtime_error(
-          "Encountered uninmplemented statement type during analysis");
+      throw std::runtime_error(fmt::format(
+          "Encountered uninmplemented statement type during analysis: {}",
+          to_string(*node)));
     }
   }
   ast->scope_annotation = scope_stack.back(); // Annotate scope
