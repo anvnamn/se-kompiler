@@ -50,7 +50,7 @@ int run_assembly(const std::string &asm_code) {
 
   // Ensure temp files are removed on scope exit
 
-  auto guard = FileGuard(std::vector{asm_file, obj_file, bin_file});
+  FileGuard guard({asm_file, obj_file, bin_file});
 
   write_file(asm_file, asm_code);
 

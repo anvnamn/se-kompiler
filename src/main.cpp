@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     auto temp_obj = temp_dir / "temp_assembly.o";
     auto temp_bin = temp_dir / "temp_binary";
 
-    auto guard = FileGuard({temp_asm, temp_obj, temp_bin});
+    FileGuard guard({temp_asm, temp_obj, temp_bin});
 
     write_file(temp_asm, asm_code);
 
