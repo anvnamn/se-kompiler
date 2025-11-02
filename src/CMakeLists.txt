@@ -21,4 +21,5 @@ add_executable(sek
 target_link_libraries(sek
     PRIVATE mycompiler_lib
     fmt::fmt
+    cxxopts::cxxopts
 )

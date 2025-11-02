@@ -16,6 +16,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 add_subdirectory(extern/fmt)
+add_subdirectory(extern/cxxopts)
+
 
 add_subdirectory(src)
 add_subdirectory(tests)
