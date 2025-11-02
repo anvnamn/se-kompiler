@@ -2,11 +2,11 @@
 #include "lexer.h"
 #include "parser.h"
 #include "semantic_analyzer.h"
+#include "utils.h"
 
 #include <cxxopts.hpp>
 #include <filesystem>
 #include <fmt/format.h>
-#include <fstream>
 #include <string>
 
 int main(int argc, char **argv) {
@@ -42,21 +42,11 @@ int main(int argc, char **argv) {
     std::filesystem::path input_file = result["input"].as<std::string>();
     std::filesystem::path output_file = result["output"].as<std::string>();
 
-    std::string content;
-    {
-      std::ifstream ifs(input_file);
-      if (!ifs) {
-        fmt::print(stderr, "Failed to open {}.\n", input_file.string());
-        return 1;
-      }
-      content.assign((std::istreambuf_iterator<char>(ifs)),
-                     std::istreambuf_iterator<char>());
-    }
+    std::string source_code = read_file(input_file);
 
     std::string asm_code;
-
     try {
-      TokenStream ts = tokenize(content);
+      TokenStream ts = tokenize(source_code);
 
       auto ast = parse_tokens(ts);
 
@@ -83,16 +73,9 @@ int main(int argc, char **argv) {
     auto temp_obj = temp_dir / "temp_assembly.o";
     auto temp_bin = temp_dir / "temp_binary";
 
-    {
-      std::ofstream asm_osm(temp_asm);
+    auto guard = FileGuard({temp_asm, temp_obj, temp_bin});
 
-      if (asm_osm.is_open()) {
-        asm_osm << asm_code;
-      } else {
-        fmt::print(stderr, "Failed to write assembly to temp file.\n");
-        return 1;
-      }
-    }
+    write_file(temp_asm, asm_code);
 
     std::string asm_cmd =
         fmt::format("as -o {} {}", temp_obj.string(), temp_asm.string());
@@ -109,10 +92,6 @@ int main(int argc, char **argv) {
     }
 
     std::filesystem::rename(temp_bin, output_file);
-
-    std::filesystem::remove(temp_asm);
-    std::filesystem::remove(temp_obj);
-    std::filesystem::remove(temp_bin);
 
     return EXIT_SUCCESS;
 

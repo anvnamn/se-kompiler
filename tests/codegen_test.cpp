@@ -16,7 +16,7 @@ TEST(CodegenTest, PlainReturn) {
   auto codegen = Codegen();
   const auto actual_as = codegen.generate_assembly(*program);
 
-  auto const expected_as = read_file("return123.as");
+  auto const expected_as = read_test_data("return123.as");
 
   ASSERT_EQ(actual_as, expected_as);
 

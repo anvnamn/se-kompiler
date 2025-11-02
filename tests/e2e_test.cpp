@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 
 TEST(E2E, Return123) {
-  auto const source_file = read_file("return123.se");
+  auto const source_file = read_test_data("return123.se");
 
   TokenStream ts = tokenize(source_file);
 

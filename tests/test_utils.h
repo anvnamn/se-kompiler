@@ -1,18 +1,12 @@
 #include "node.h"
+#include "utils.h"
 #include <cstdlib>
 #include <filesystem>
-#include <fstream>
-#include <stdexcept>
 #include <string>
 
-std::string read_file(const std::string &filename) {
+std::string read_test_data(const std::string &filename) {
   std::string path = std::string(TEST_DATA_DIR) + "/" + filename;
-  std::ifstream ifs(path);
-  if (!ifs)
-    throw std::runtime_error("Failed to open file: " + path);
-
-  return std::string(std::istreambuf_iterator<char>(ifs),
-                     std::istreambuf_iterator<char>());
+  return read_file(path);
 }
 
 class ProgramBuilder {
@@ -55,34 +49,10 @@ int run_assembly(const std::string &asm_code) {
   auto bin_file = temp_dir / "temp_binary";
 
   // Ensure temp files are removed on scope exit
-  struct FileGuard {
-    std::vector<std::filesystem::path> paths;
-
-    FileGuard(std::vector<std::filesystem::path> paths) : paths(paths) {}
-
-    ~FileGuard() {
-      std::error_code ec;
-      for (auto path : paths) {
-        std::filesystem::remove(path, ec);
-      }
-    }
-
-    // Delete copy and move operations
-    FileGuard(const FileGuard &) = delete;
-    FileGuard &operator=(const FileGuard &) = delete;
-    FileGuard(FileGuard &&) = delete;
-    FileGuard &operator=(FileGuard &&) = delete;
-  };
 
   auto guard = FileGuard(std::vector{asm_file, obj_file, bin_file});
 
-  // Write assembly to file
-  {
-    std::ofstream ofs(asm_file);
-    if (!ofs)
-      throw std::runtime_error("Failed to open temp assembly file");
-    ofs << asm_code;
-  }
+  write_file(asm_file, asm_code);
 
   // Assemble
   if (std::system(("as --64 -o " + obj_file.string() + " " + asm_file.string())
