@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fmt/format.h>
 #include <string>
+#include <sys/wait.h>
 
 int main(int argc, char **argv) {
   try {
@@ -79,15 +80,29 @@ int main(int argc, char **argv) {
 
     std::string asm_cmd =
         fmt::format("as -o {} {}", temp_obj.string(), temp_asm.string());
-    if (std::system(asm_cmd.c_str()) != 0) {
-      fmt::print(stderr, "Assembly failed.\n");
+    int asm_status = std::system(asm_cmd.c_str());
+    if (WIFSIGNALED(asm_status)) {
+      fmt::print(stderr, "Assembly process terminated by signal {}.\n",
+                 WTERMSIG(asm_status));
+      return 1;
+    }
+    if (!WIFEXITED(asm_status) || WEXITSTATUS(asm_status) != 0) {
+      fmt::print(stderr, "Assembly failed with status {}.\n",
+                 WEXITSTATUS(asm_status));
       return 1;
     }
 
     std::string link_cmd =
         fmt::format("ld -o {} {}", temp_bin.string(), temp_obj.string());
-    if (std::system(link_cmd.c_str()) != 0) {
-      fmt::print(stderr, "Linking failed.\n");
+    int link_status = std::system(link_cmd.c_str());
+    if (WIFSIGNALED(link_status)) {
+      fmt::print(stderr, "Linking process terminated by signal {}.\n",
+                 WTERMSIG(link_status));
+      return 1;
+    }
+    if (!WIFEXITED(link_status) || WEXITSTATUS(link_status) != 0) {
+      fmt::print(stderr, "Linking failed with status {}.\n",
+                 WEXITSTATUS(link_status));
       return 1;
     }
 
