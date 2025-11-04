@@ -63,13 +63,8 @@ int main(int argc, char **argv) {
     }
 
     fmt::print("{}\n", asm_code);
-    std::filesystem::path temp_dir;
-    try {
-      temp_dir = std::filesystem::temp_directory_path();
-    } catch (const std::exception &e) {
-      fmt::print(stderr, "Failed to get temp directory: {}\n", e.what());
-      return 1;
-    }
+    auto temp_dir = std::filesystem::temp_directory_path();
+
     auto temp_asm = temp_dir / "temp_assembly.s";
     auto temp_obj = temp_dir / "temp_assembly.o";
     auto temp_bin = temp_dir / "temp_binary";
