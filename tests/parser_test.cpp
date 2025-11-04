@@ -243,7 +243,7 @@ TEST(VariableAssignment, IntegerLiteral) {
 }
 
 TEST(ParseProgram, HelloWorld) {
-  auto const source_file = read_file("hello_world.se");
+  auto const source_file = read_test_data("hello_world.se");
   TokenStream ts = tokenize(source_file);
   auto ast = parse_tokens(ts);
 }

@@ -4,6 +4,10 @@ project(SEK LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_compile_definitions(
+  BUILD_DIR="${CMAKE_CURRENT_SOURCE_DIR}/build"
+)
+
 include(CTest)
 enable_testing()
 
@@ -16,6 +20,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 add_subdirectory(extern/fmt)
+add_subdirectory(extern/cxxopts)
+
 
 add_subdirectory(src)
 add_subdirectory(tests)
