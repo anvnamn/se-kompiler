@@ -8,7 +8,7 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
 
     steps:
     - name: Checkout repo
@@ -26,7 +26,7 @@ jobs:
       run: find src include tests -name '*.cpp' -o -name '*.h' | xargs clang-tidy-14 -p build
 
   build-test:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
 
     steps:
     - name: Checkout repo
