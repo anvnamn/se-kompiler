@@ -2,9 +2,6 @@ name: The Pipe
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
 
 jobs:
   lint:
