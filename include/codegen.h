@@ -15,5 +15,7 @@ private:
   void generate_return_node(const ReturnNode &node,
                             const std::string &exit_label);
 
+  void generate_variable_declaration(const VariableDeclarationNode &node);
+
   std::ostringstream text, data, bss;
 };

@@ -18,9 +18,13 @@ std::string Codegen::generate_assembly(const ScopeNode &program) {
   text << "    mov $60, %rax\n";  // syscall number for exit"
   text << "    syscall\n";        // invoke kernel;
 
+  data << ".data\n";
+
+  bss << ".bss\n";
+
   generate_scope(program);
 
-  return text.str();
+  return text.str() + data.str() + bss.str();
 }
 
 void Codegen::generate_statement(const StatementNode &node,
@@ -29,6 +33,9 @@ void Codegen::generate_statement(const StatementNode &node,
     generate_function_def(*func_def, exit_label);
   } else if (auto *ret_node = dynamic_cast<const ReturnNode *>(&node)) {
     generate_return_node(*ret_node, exit_label);
+  } else if (auto *variable_decl =
+                 dynamic_cast<const VariableDeclarationNode *>(&node)) {
+    generate_variable_declaration(*variable_decl);
   } else {
     throw std::runtime_error(fmt::format(
         "Node {} not implemented in code generation", to_string(node)));
@@ -75,4 +82,35 @@ void Codegen::generate_return_node(const ReturnNode &node,
         "Only integer literals are supported in return nodes so far");
   }
   text << "    jmp " << exit_label << "\n";
+}
+
+void Codegen::generate_variable_declaration(
+    const VariableDeclarationNode &node) {
+  const auto var_info = node.variable->variable_annotation;
+  if (!var_info) {
+    throw std::runtime_error(
+        fmt::format("Variable {} has no annotation", node.variable->name));
+  }
+
+  if (var_info->is_global) {
+    if (const auto var_init =
+            dynamic_cast<const VariableInitializationNode *>(&node)) {
+      // Global variable definition with initialization
+      if (const auto int_lit =
+              dynamic_cast<const IntegerLiteralNode *>(var_init->expr.get())) {
+        data << var_info->name << ":\n";
+        data << fmt::format("    .long {}\n", int_lit->value);
+        return;
+      }
+      throw std::runtime_error(
+          "Only integer literals are supported in global variable "
+          "initializations so far");
+    } else {
+      // Global variable declaration without initialization
+      bss << fmt::format("    .lcomm {}, 4\n",
+                         var_info->name); // 4 bytes for integer
+    }
+  } else {
+    throw std::runtime_error("Local variable declaration not implemented yet");
+  }
 }

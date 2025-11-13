@@ -10,7 +10,7 @@ _start:
 huvud:
     push %rbp
     mov %rsp, %rbp
-    movq $123, %rax
+    movq $0, %rax
     jmp .exit_huvud
 .exit_huvud:
     mov %rbp, %rsp
@@ -18,3 +18,4 @@ huvud:
     ret
 .data
 .bss
+    .lcomm global_var, 4
