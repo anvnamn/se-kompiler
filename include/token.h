@@ -37,9 +37,27 @@ using Tokens = std::vector<std::unique_ptr<Token>>;
 
 class AssignmentToken : public Token {
 protected:
-  void print(std::ostream &os) const override {
-    os << "AssignmentOperatorToken";
-  }
+  void print(std::ostream &os) const override { os << "AssignmentToken"; }
+};
+
+class AdditionToken : public Token {
+protected:
+  void print(std::ostream &os) const override { os << "AdditionToken"; }
+};
+
+class SubtractionToken : public Token {
+protected:
+  void print(std::ostream &os) const override { os << "SubtractionToken"; }
+};
+
+class MultiplicationToken : public Token {
+protected:
+  void print(std::ostream &os) const override { os << "MultiplicationToken"; }
+};
+
+class DivisionToken : public Token {
+protected:
+  void print(std::ostream &os) const override { os << "DivisionToken"; }
 };
 
 class OpenParenToken : public Token {

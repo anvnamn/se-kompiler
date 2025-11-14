@@ -242,6 +242,29 @@ TEST(VariableAssignment, IntegerLiteral) {
   ASSERT_EQ(int_lit_node->value, literal_value);
 }
 
+TEST(VariableAssignment, NegIntegerLiteral) {
+  constexpr int literal_value = -112233;
+  Tokens tokens;
+  tokens.emplace_back(std::make_unique<IdentifierToken>("heltal"));
+  tokens.emplace_back(std::make_unique<AssignmentToken>());
+  tokens.emplace_back(std::make_unique<SubtractionToken>());
+  tokens.emplace_back(
+      std::make_unique<IntegerLiteralToken>(-literal_value)); // Positive value
+  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  auto ts = TokenStream{std::move(tokens)};
+  auto ast = parse_tokens(ts);
+
+  ASSERT_TRUE(ast.statements.size() == 1) << fmt::format(
+      "Expected program with 1 statement, actual: {}", ast.statements.size());
+  auto assignment_node =
+      dynamic_cast<AssignmentNode *>(ast.statements[0].get());
+  ASSERT_NE(assignment_node, nullptr) << "Expected an AssignmentNode";
+  auto int_lit_node =
+      dynamic_cast<IntegerLiteralNode *>(assignment_node->expression.get());
+  ASSERT_NE(int_lit_node, nullptr) << "Expected an IntegerLiteralNode";
+  ASSERT_EQ(int_lit_node->value, literal_value);
+}
+
 TEST(ParseProgram, HelloWorld) {
   auto const source_file = read_test_data("hello_world.se");
   TokenStream ts = tokenize(source_file);

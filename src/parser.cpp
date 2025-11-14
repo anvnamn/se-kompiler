@@ -7,15 +7,29 @@ std::vector<std::unique_ptr<ParameterNode>> parse_parameters(TokenStream &ts);
 std::unique_ptr<ScopeNode> parse_scope(TokenStream &ts);
 std::unique_ptr<StatementNode> parse_statement(TokenStream &ts);
 
-std::unique_ptr<ExpressionNode> parse_expression(TokenStream &ts) {
+std::unique_ptr<ExpressionNode> parse_primal(TokenStream &ts) {
   if (auto t = dynamic_cast<IntegerLiteralToken *>(ts.peek())) {
     ts.consume();
     return std::make_unique<IntegerLiteralNode>(t->value);
+  } else if (auto t = dynamic_cast<SubtractionToken *>(ts.peek())) {
+    ts.consume();
+    auto expr = parse_primal(ts);
+    if (auto int_lit = dynamic_cast<IntegerLiteralNode *>(expr.get())) {
+      int_lit->value = -int_lit->value;
+      return expr;
+    } else {
+      throw std::runtime_error(
+          "Negation is only supported for integer literals");
+    }
   } else if (auto t = dynamic_cast<IdentifierToken *>(ts.peek())) {
     ts.consume();
     return std::make_unique<IdentifierNode>(t->name);
   }
   return nullptr;
+}
+
+std::unique_ptr<ExpressionNode> parse_expression(TokenStream &ts) {
+  return parse_primal(ts);
 }
 
 std::vector<std::unique_ptr<ParameterNode>> parse_parameters(TokenStream &ts) {
@@ -69,6 +83,9 @@ std::unique_ptr<StatementNode> parse_statement(TokenStream &ts) {
     ts.consume(); // Consume assignment token
     auto assignment_node = std::make_unique<AssignmentNode>(
         std::make_unique<IdentifierNode>(variable_name), parse_expression(ts));
+    if (!assignment_node->expression) {
+      throw std::runtime_error("Failed to parse expression in assignment");
+    }
     if (!dynamic_cast<TerminatorToken *>(ts.consume())) {
       throw std::runtime_error("Missing terminator after assignment statement");
     }

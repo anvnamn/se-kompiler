@@ -32,6 +32,18 @@ TokenStream tokenize(const std::string &src) {
       } else if (word.find(RETURN_STR, pos) == 0) {
         tokens.emplace_back(std::make_unique<ReturnToken>());
         pos += RETURN_STR.length();
+      } else if (word[pos] == '+') {
+        tokens.emplace_back(std::make_unique<AdditionToken>());
+        pos += 1;
+      } else if (word[pos] == '-') {
+        tokens.emplace_back(std::make_unique<SubtractionToken>());
+        pos += 1;
+      } else if (word[pos] == '*') {
+        tokens.emplace_back(std::make_unique<MultiplicationToken>());
+        pos += 1;
+      } else if (word[pos] == '/') {
+        tokens.emplace_back(std::make_unique<DivisionToken>());
+        pos += 1;
       } else if (word[pos] == '=') {
         tokens.emplace_back(std::make_unique<AssignmentToken>());
         pos += 1;
