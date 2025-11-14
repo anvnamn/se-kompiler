@@ -77,9 +77,21 @@ void Codegen::generate_return_node(const ReturnNode &node,
   if (const auto *int_lit =
           dynamic_cast<const IntegerLiteralNode *>(node.expression.get())) {
     text << "    movq $" << int_lit->value << ", %rax\n";
+  } else if (const auto *identifier =
+                 dynamic_cast<const IdentifierNode *>(node.expression.get())) {
+    const auto var_info = identifier->variable_annotation;
+    if (!var_info) {
+      throw std::runtime_error(
+          fmt::format("Variable {} in return statement is not annotated",
+                      identifier->name));
+    }
+    if (var_info->is_global) {
+      text << fmt::format("    movl {}(%rip), %eax\n", var_info->name);
+    } else {
+      throw std::runtime_error("Local variable returns not implemented yet");
+    }
   } else {
-    throw std::runtime_error(
-        "Only integer literals are supported in return nodes so far");
+    throw std::runtime_error("Unsupported return expression type");
   }
   text << "    jmp " << exit_label << "\n";
 }

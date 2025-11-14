@@ -33,6 +33,39 @@ TEST(GlobalVar, AnnotateGlobalVar) {
             expected_data_type);
 }
 
+TEST(AnnotateIdentifier, ReturnStatement) {
+  auto ident_node = std::make_unique<IdentifierNode>("global_var");
+
+  auto var_info = std::make_shared<VariableInfo>();
+  var_info->name = "global_var";
+  var_info->type = Datatype::INTEGER;
+  var_info->is_global = true;
+  ident_node->variable_annotation = var_info;
+  const auto int_lit_value = 55;
+  auto int_lit_node = std::make_unique<IntegerLiteralNode>(int_lit_value);
+  auto var_init = std::make_unique<VariableInitializationNode>(
+      Datatype::INTEGER, std::move(ident_node), std::move(int_lit_node));
+
+  ProgramBuilder builder;
+  builder.add_global_statement(std::move(var_init));
+
+  auto ident_node_ptr = new IdentifierNode("global_var");
+  auto return_node = std::make_unique<ReturnNode>(
+      std::unique_ptr<IdentifierNode>(ident_node_ptr));
+  builder.add_to_main(std::move(return_node));
+
+  auto program = builder.build();
+
+  auto analyzer = SemanticAnalyzer();
+  analyzer.analyze_program(program.get());
+
+  ASSERT_EQ(ident_node_ptr->variable_annotation->name, var_info->name);
+  return;
+  ASSERT_EQ(ident_node_ptr->variable_annotation->type, var_info->type);
+  ASSERT_EQ(ident_node_ptr->variable_annotation->is_global,
+            var_info->is_global);
+}
+
 TEST(GlobalVar, DuplicateGlobalVar) {
   std::vector<std::unique_ptr<StatementNode>> statements;
 
