@@ -59,6 +59,36 @@ TEST(ReturnStatement, ReturnGlobalVariable) {
   ASSERT_EQ(return_status, int_lit_value);
 }
 
+TEST(ReturnStatement, ReturnLocalVariable) {
+  auto ident_node = std::make_unique<IdentifierNode>("local_var");
+
+  auto var_info = std::make_shared<VariableInfo>();
+  var_info->name = "local_var";
+  var_info->type = Datatype::INTEGER;
+  var_info->is_global = false;
+  ident_node->variable_annotation = var_info;
+  const auto int_lit_value = 77;
+  auto int_lit_node = std::make_unique<IntegerLiteralNode>(int_lit_value);
+  auto var_init = std::make_unique<VariableInitializationNode>(
+      Datatype::INTEGER, std::move(ident_node), std::move(int_lit_node));
+
+  ProgramBuilder builder;
+  builder.add_to_main(std::move(var_init));
+
+  auto ident_node_return = std::make_unique<IdentifierNode>("local_var");
+  ident_node_return->variable_annotation = var_info;
+  auto return_node = std::make_unique<ReturnNode>(std::move(ident_node_return));
+  builder.add_to_main(std::move(return_node));
+
+  auto program = builder.build();
+
+  auto codegen = Codegen();
+  const auto generated_assembly = codegen.generate_assembly(*program);
+
+  const auto return_status = run_assembly(generated_assembly);
+  ASSERT_EQ(return_status, int_lit_value);
+}
+
 TEST(GlobalVar, GlobalVariableDeclaration) {
   auto ident_node = std::make_unique<IdentifierNode>("global_var");
   auto var_info = std::make_shared<VariableInfo>();

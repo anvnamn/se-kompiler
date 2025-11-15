@@ -50,13 +50,30 @@ void Codegen::generate_function_def(const FunctionDefinitionNode &node,
   text << "    push %rbp\n";      // save caller base pointer
   text << "    mov %rsp, %rbp\n"; // set base pointer to top of stack
 
-  const auto local_exit_label =
-      fmt::format(".exit_{}", node.functionName->name);
-
   if (!node.body) {
     throw std::runtime_error(
         fmt::format("Function {} has null body", node.functionName->name));
   }
+
+  if (!node.body->scope_annotation) {
+    throw std::runtime_error(fmt::format("Function {} has no scope annotation",
+                                         node.functionName->name));
+  }
+
+  // Allocate stack space for local variables
+  int local_var_size = node.body->scope_annotation->stack_size;
+  // Make sure local_var_size is a multiple of 16
+  int remainder = local_var_size % 16;
+  if (remainder != 0) {
+    local_var_size += (16 - remainder);
+  }
+  if (local_var_size > 0) {
+    text << fmt::format("    sub ${}, %rsp\n", local_var_size);
+  }
+
+  const auto local_exit_label =
+      fmt::format(".exit_{}", node.functionName->name);
+
   generate_scope(*node.body, local_exit_label);
 
   text << local_exit_label << ":\n";
@@ -88,7 +105,12 @@ void Codegen::generate_return_node(const ReturnNode &node,
     if (var_info->is_global) {
       text << fmt::format("    movl {}(%rip), %eax\n", var_info->name);
     } else {
-      throw std::runtime_error("Local variable returns not implemented yet");
+      if (var_info->type == Datatype::INTEGER) {
+        text << fmt::format("    movl -{}(%rbp), %eax\n",
+                            var_info->stack_offset);
+      } else {
+        throw std::runtime_error("Unsupported local variable type in return");
+      }
     }
   } else {
     throw std::runtime_error("Unsupported return expression type");
@@ -123,6 +145,20 @@ void Codegen::generate_variable_declaration(
                          var_info->name); // 4 bytes for integer
     }
   } else {
-    throw std::runtime_error("Local variable declaration not implemented yet");
+    if (const auto var_init =
+            dynamic_cast<const VariableInitializationNode *>(&node)) {
+      if (const auto int_lit =
+              dynamic_cast<IntegerLiteralNode *>(var_init->expr.get())) {
+        text << fmt::format("    movl ${}, -{}(%rbp)\n", int_lit->value,
+                            var_info->stack_offset);
+      } else {
+        throw std::runtime_error(
+            "Only integer literals are supported in local variable "
+            "initializations so far");
+      }
+    } else {
+      return; // No code needed for local variable declaration without
+              // initialization
+    }
   }
 }

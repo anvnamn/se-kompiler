@@ -32,7 +32,15 @@ public:
     main_body_ptr->statements.push_back(std::move(stmt));
   }
 
+  void annotate_main_scope(const ScopeInfo &info) {
+    main_function->body->scope_annotation = info;
+  }
+
   std::unique_ptr<ScopeNode> build() {
+    // If main function body has no scope annotation, add an empty one
+    if (!main_function->body->scope_annotation) {
+      main_function->body->scope_annotation = ScopeInfo(ScopeType::Function);
+    }
     add_global_statement(std::move(main_function));
     return std::move(global_scope);
   }
