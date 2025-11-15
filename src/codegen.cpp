@@ -63,9 +63,10 @@ void Codegen::generate_function_def(const FunctionDefinitionNode &node,
   // Allocate stack space for local variables
   int local_var_size = node.body->scope_annotation->stack_size;
   // Make sure local_var_size is a multiple of 16
-  int remainder = local_var_size % 16;
+  constexpr int stack_alignment = 16;
+  int remainder = local_var_size % stack_alignment;
   if (remainder != 0) {
-    local_var_size += (16 - remainder);
+    local_var_size += (stack_alignment - remainder);
   }
   if (local_var_size > 0) {
     text << fmt::format("    sub ${}, %rsp\n", local_var_size);
