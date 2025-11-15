@@ -1,10 +1,11 @@
 #include "codegen.h"
+#include "semantic_analyzer.h"
 #include "test_utils.h"
 #include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <memory>
 
-TEST(CodegenTest, PlainReturn) {
+TEST(ReturnStatement, ReturnIntegerLiteral) {
   constexpr int return_value = 123;
   auto return_node = std::make_unique<ReturnNode>(
       std::make_unique<IntegerLiteralNode>(return_value));
@@ -22,4 +23,130 @@ TEST(CodegenTest, PlainReturn) {
 
   const auto return_status = run_assembly(actual_as);
   ASSERT_EQ(return_status, return_value);
+}
+
+TEST(ReturnStatement, ReturnGlobalVariable) {
+  auto ident_node = std::make_unique<IdentifierNode>("global_var");
+
+  auto var_info = std::make_shared<VariableInfo>();
+  var_info->name = "global_var";
+  var_info->type = Datatype::INTEGER;
+  var_info->is_global = true;
+  ident_node->variable_annotation = var_info;
+  const auto int_lit_value = 55;
+  auto int_lit_node = std::make_unique<IntegerLiteralNode>(int_lit_value);
+  auto var_init = std::make_unique<VariableInitializationNode>(
+      Datatype::INTEGER, std::move(ident_node), std::move(int_lit_node));
+
+  ProgramBuilder builder;
+  builder.add_global_statement(std::move(var_init));
+
+  auto ident_node_return = std::make_unique<IdentifierNode>("global_var");
+  ident_node_return->variable_annotation = var_info;
+  auto return_node = std::make_unique<ReturnNode>(std::move(ident_node_return));
+  builder.add_to_main(std::move(return_node));
+
+  auto program = builder.build();
+
+  auto codegen = Codegen();
+  const auto actual_as = codegen.generate_assembly(*program);
+
+  const auto expected_as = read_test_data("return_global_var.as");
+
+  ASSERT_EQ(actual_as, expected_as);
+
+  const auto return_status = run_assembly(actual_as);
+  ASSERT_EQ(return_status, int_lit_value);
+}
+
+TEST(ReturnStatement, ReturnLocalVariable) {
+  auto ident_node = std::make_unique<IdentifierNode>("local_var");
+
+  auto var_info = std::make_shared<VariableInfo>();
+  var_info->name = "local_var";
+  var_info->type = Datatype::INTEGER;
+  var_info->is_global = false;
+  ident_node->variable_annotation = var_info;
+  const auto int_lit_value = 77;
+  auto int_lit_node = std::make_unique<IntegerLiteralNode>(int_lit_value);
+  auto var_init = std::make_unique<VariableInitializationNode>(
+      Datatype::INTEGER, std::move(ident_node), std::move(int_lit_node));
+
+  ProgramBuilder builder;
+  builder.add_to_main(std::move(var_init));
+
+  auto ident_node_return = std::make_unique<IdentifierNode>("local_var");
+  ident_node_return->variable_annotation = var_info;
+  auto return_node = std::make_unique<ReturnNode>(std::move(ident_node_return));
+  builder.add_to_main(std::move(return_node));
+
+  auto program = builder.build();
+
+  auto codegen = Codegen();
+  const auto generated_assembly = codegen.generate_assembly(*program);
+
+  const auto return_status = run_assembly(generated_assembly);
+  ASSERT_EQ(return_status, int_lit_value);
+}
+
+TEST(GlobalVar, GlobalVariableDeclaration) {
+  auto ident_node = std::make_unique<IdentifierNode>("global_var");
+  auto var_info = std::make_shared<VariableInfo>();
+  var_info->name = "global_var";
+  var_info->type = Datatype::INTEGER;
+  var_info->is_global = true;
+  ident_node->variable_annotation = var_info;
+  auto var_decl = std::make_unique<VariableDeclarationNode>(
+      Datatype::INTEGER, std::move(ident_node));
+
+  ProgramBuilder builder;
+  builder.add_global_statement(std::move(var_decl));
+
+  auto return_node =
+      std::make_unique<ReturnNode>(std::make_unique<IntegerLiteralNode>(0));
+  builder.add_to_main(std::move(return_node));
+
+  auto program = builder.build();
+
+  auto codegen = Codegen();
+  const auto actual_as = codegen.generate_assembly(*program);
+
+  const auto expected_as = read_test_data("global_var_decl.as");
+
+  ASSERT_EQ(actual_as, expected_as);
+
+  const auto return_status = run_assembly(actual_as);
+  ASSERT_EQ(return_status, 0);
+}
+
+TEST(GlobalVar, GlobalVariableInitialization) {
+  auto ident_node = std::make_unique<IdentifierNode>("global_var");
+  auto var_info = std::make_shared<VariableInfo>();
+  var_info->name = "global_var";
+  var_info->type = Datatype::INTEGER;
+  var_info->is_global = true;
+  ident_node->variable_annotation = var_info;
+  const auto int_lit_value = 1621;
+  auto int_lit_node = std::make_unique<IntegerLiteralNode>(int_lit_value);
+  auto var_decl = std::make_unique<VariableInitializationNode>(
+      Datatype::INTEGER, std::move(ident_node), std::move(int_lit_node));
+
+  ProgramBuilder builder;
+  builder.add_global_statement(std::move(var_decl));
+
+  auto return_node =
+      std::make_unique<ReturnNode>(std::make_unique<IntegerLiteralNode>(0));
+  builder.add_to_main(std::move(return_node));
+
+  auto program = builder.build();
+
+  auto codegen = Codegen();
+  const auto actual_as = codegen.generate_assembly(*program);
+
+  const auto expected_as = read_test_data("global_var_def.as");
+
+  ASSERT_EQ(actual_as, expected_as);
+
+  const auto return_status = run_assembly(actual_as);
+  ASSERT_EQ(return_status, 0);
 }

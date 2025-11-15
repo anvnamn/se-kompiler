@@ -78,3 +78,18 @@ TEST(LexerTest, ValidIdentifiers) {
     compare_tokenstreams(actual_ts, expected_ts);
   }
 }
+
+TEST(LexerTest, BinaryOperators) {
+  std::string source_code = "+-*/";
+
+  TokenStream actual_ts = tokenize(source_code);
+
+  Tokens expected_tokens;
+  expected_tokens.emplace_back(std::make_unique<AdditionToken>());
+  expected_tokens.emplace_back(std::make_unique<SubtractionToken>());
+  expected_tokens.emplace_back(std::make_unique<MultiplicationToken>());
+  expected_tokens.emplace_back(std::make_unique<DivisionToken>());
+
+  auto expected_ts = TokenStream{std::move(expected_tokens)};
+  compare_tokenstreams(actual_ts, expected_ts);
+}

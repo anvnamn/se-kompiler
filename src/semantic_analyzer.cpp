@@ -9,9 +9,7 @@ void SemanticAnalyzer::analyze_scope(ScopeNode *ast) {
                    dynamic_cast<FunctionDeclarationNode *>(node.get())) {
       analyze_func_decl(func_decl);
     } else if (auto return_stmt = dynamic_cast<ReturnNode *>(node.get())) {
-      // no analysis implemented yet, but should check that
-      // return statement is inside a function scope
-      // return type matches function return type
+      analyze_return_stmt(return_stmt);
     } else if (auto scope = dynamic_cast<ScopeNode *>(node.get())) {
       scope_stack.push_back(ScopeInfo(ScopeType::Block)); // Enter block scope
       analyze_scope(scope);
@@ -129,4 +127,41 @@ void SemanticAnalyzer::analyze_func_decl(FunctionDeclarationNode *func_decl) {
     }
     analyze_scope(func_def->body.get());
   }
+}
+
+void SemanticAnalyzer::analyze_return_stmt(ReturnNode *return_stmt) {
+  // Must be in function scope
+  if (scope_stack.back().type != ScopeType::Function) {
+    throw std::runtime_error("Return statement not in function scope");
+  }
+  if (auto int_lit =
+          dynamic_cast<IntegerLiteralNode *>(return_stmt->expression.get())) {
+    // OK, integer literal
+    return;
+  } else if (auto ident_node = dynamic_cast<IdentifierNode *>(
+                 return_stmt->expression.get())) {
+    auto var_info = get_var_info(ident_node);
+    if (!var_info) {
+      throw std::runtime_error(fmt::format(
+          "Undeclared variable in return statement: {}", ident_node->name));
+    }
+    ident_node->variable_annotation = var_info;
+  } else {
+    throw std::runtime_error(
+        "Unimplemented return expression type in return statement");
+  }
+}
+
+std::shared_ptr<VariableInfo>
+SemanticAnalyzer::get_var_info(IdentifierNode *identifier) {
+
+  std::string var_name = identifier->name;
+  for (auto scope_it = scope_stack.rbegin(); scope_it != scope_stack.rend();
+       ++scope_it) {
+    auto &scope = *scope_it;
+    if (scope.variables.contains(var_name)) {
+      return scope.variables[var_name];
+    }
+  }
+  return nullptr;
 }
