@@ -115,9 +115,11 @@ void SemanticAnalyzer::analyze_func_decl(FunctionDeclarationNode *func_decl) {
                                         .defined = func_def != nullptr};
   }
   if (func_def) {
-    fmt::println("Going into function scope");
-    scope_stack.push_back(
-        ScopeInfo{ScopeType::Function}); // Enter function scope
+    auto return_label = fmt::format("{}_return", func_name);
+    func_def->return_label = return_label; // Annotate function definition
+    auto scope_info = ScopeInfo(ScopeType::Function);
+    scope_info.return_label = return_label;
+    scope_stack.push_back(scope_info); // Enter function scope
     for (const auto &param : func_def->parameters) {
       auto var_info =
           VariableInfo{.name = param->name->name,
@@ -125,6 +127,7 @@ void SemanticAnalyzer::analyze_func_decl(FunctionDeclarationNode *func_decl) {
                        .stack_offset = scope_stack.back().stack_size};
       auto var_info_ptr = std::make_shared<VariableInfo>(var_info);
     }
+    fmt::println("Going into function scope");
     analyze_scope(func_def->body.get());
   }
 }
@@ -134,6 +137,12 @@ void SemanticAnalyzer::analyze_return_stmt(ReturnNode *return_stmt) {
   if (scope_stack.back().type != ScopeType::Function) {
     throw std::runtime_error("Return statement not in function scope");
   }
+
+  if (scope_stack.back().return_label.empty()) {
+    throw std::runtime_error("Function scope has no return label");
+  }
+  // Annotate return label
+  return_stmt->return_label = scope_stack.back().return_label;
   if (auto int_lit =
           dynamic_cast<IntegerLiteralNode *>(return_stmt->expression.get())) {
     // OK, integer literal

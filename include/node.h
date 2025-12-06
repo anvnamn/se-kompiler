@@ -123,6 +123,7 @@ protected:
 class FunctionDefinitionNode : public FunctionDeclarationNode {
 public:
   std::unique_ptr<ScopeNode> body;
+  std::optional<std::string> return_label;
 
   FunctionDefinitionNode(Datatype returnType,
                          std::unique_ptr<IdentifierNode> functionName,
@@ -153,6 +154,7 @@ protected:
 class ReturnNode : public StatementNode {
 public:
   std::unique_ptr<ExpressionNode> expression;
+  std::optional<std::string> return_label;
   explicit ReturnNode(std::unique_ptr<ExpressionNode> expression)
       : expression(std::move(expression)) {}
 
