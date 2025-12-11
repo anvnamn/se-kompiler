@@ -19,9 +19,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-add_subdirectory(extern/fmt)
-add_subdirectory(extern/cxxopts)
+FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    GIT_TAG 10.1.0
+)
+FetchContent_MakeAvailable(fmt)
 
+FetchContent_Declare(
+    cxxopts
+    GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+    GIT_TAG v3.3.1
+)
+FetchContent_MakeAvailable(cxxopts)
 
 add_subdirectory(src)
 add_subdirectory(tests)

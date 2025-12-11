@@ -1,3 +1,5 @@
+// NOLINTBEGIN(cppcoreguidelines-owning-memory)
+
 #include "lexer.h"
 #include "test_utils.h"
 #include "token.h"
@@ -93,3 +95,5 @@ TEST(LexerTest, BinaryOperators) {
   auto expected_ts = TokenStream{std::move(expected_tokens)};
   compare_tokenstreams(actual_ts, expected_ts);
 }
+
+// NOLINTEND(cppcoreguidelines-owning-memory)

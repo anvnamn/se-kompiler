@@ -11,7 +11,13 @@ target_link_libraries(mycompiler_lib
 
 target_include_directories(mycompiler_lib
     PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/include
+)
+
+target_include_directories(mycompiler_lib
+    SYSTEM PUBLIC
+        ${fmt_SOURCE_DIR}/include
+        ${cxxopts_SOURCE_DIR}/include
 )
 
 add_executable(sek

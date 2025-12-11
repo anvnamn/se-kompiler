@@ -15,12 +15,9 @@ std::unique_ptr<ExpressionNode> parse_primal(TokenStream &ts) {
     ts.consume();
     auto expr = parse_primal(ts);
     if (auto int_lit = dynamic_cast<IntegerLiteralNode *>(expr.get())) {
-      int_lit->value = -int_lit->value;
-      return expr;
-    } else {
-      throw std::runtime_error(
-          "Negation is only supported for integer literals");
+      return std::make_unique<IntegerLiteralNode>(-int_lit->value);
     }
+    throw std::runtime_error("Negation is only supported for integer literals");
   } else if (auto t = dynamic_cast<IdentifierToken *>(ts.peek())) {
     ts.consume();
     return std::make_unique<IdentifierNode>(t->name);
