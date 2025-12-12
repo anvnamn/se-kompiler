@@ -153,6 +153,7 @@ protected:
 class ReturnNode : public StatementNode {
 public:
   std::unique_ptr<ExpressionNode> expression;
+  std::optional<std::string> return_label;
   explicit ReturnNode(std::unique_ptr<ExpressionNode> expression)
       : expression(std::move(expression)) {}
 

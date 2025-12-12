@@ -27,12 +27,11 @@ std::string Codegen::generate_assembly(const ScopeNode &program) {
   return text.str() + data.str() + bss.str();
 }
 
-void Codegen::generate_statement(const StatementNode &node,
-                                 const std::string &exit_label) {
+void Codegen::generate_statement(const StatementNode &node) {
   if (auto *func_def = dynamic_cast<const FunctionDefinitionNode *>(&node)) {
-    generate_function_def(*func_def, exit_label);
+    generate_function_def(*func_def);
   } else if (auto *ret_node = dynamic_cast<const ReturnNode *>(&node)) {
-    generate_return_node(*ret_node, exit_label);
+    generate_return_node(*ret_node);
   } else if (auto *variable_decl =
                  dynamic_cast<const VariableDeclarationNode *>(&node)) {
     generate_variable_declaration(*variable_decl);
@@ -42,8 +41,7 @@ void Codegen::generate_statement(const StatementNode &node,
   }
 }
 
-void Codegen::generate_function_def(const FunctionDefinitionNode &node,
-                                    const std::string &exit_label) {
+void Codegen::generate_function_def(const FunctionDefinitionNode &node) {
   text << node.functionName->name << ":"
        << "\n";
 
@@ -72,26 +70,26 @@ void Codegen::generate_function_def(const FunctionDefinitionNode &node,
     text << fmt::format("    sub ${}, %rsp\n", local_var_size);
   }
 
-  const auto local_exit_label =
-      fmt::format(".exit_{}", node.functionName->name);
+  generate_scope(*node.body);
 
-  generate_scope(*node.body, local_exit_label);
+  if (node.body->scope_annotation->return_label.empty()) {
+    throw std::runtime_error(fmt::format(
+        "Function {}'s body has no return label", node.functionName->name));
+  }
 
-  text << local_exit_label << ":\n";
+  text << node.body->scope_annotation->return_label << ":\n";
   text << "    mov %rbp, %rsp\n"; // restore stack pointer
   text << "    pop %rbp\n";       // restore caller base pointer
   text << "    ret\n";
 }
 
-void Codegen::generate_scope(const ScopeNode &node,
-                             const std::string &exit_label) {
+void Codegen::generate_scope(const ScopeNode &node) {
   for (const auto &stmt : node.statements) {
-    generate_statement(*stmt, exit_label);
+    generate_statement(*stmt);
   }
 }
 
-void Codegen::generate_return_node(const ReturnNode &node,
-                                   const std::string &exit_label) {
+void Codegen::generate_return_node(const ReturnNode &node) {
   if (const auto *int_lit =
           dynamic_cast<const IntegerLiteralNode *>(node.expression.get())) {
     text << "    movq $" << int_lit->value << ", %rax\n";
@@ -116,7 +114,11 @@ void Codegen::generate_return_node(const ReturnNode &node,
   } else {
     throw std::runtime_error("Unsupported return expression type");
   }
-  text << "    jmp " << exit_label << "\n";
+
+  if (!node.return_label) {
+    throw std::runtime_error("Return node has no return label");
+  }
+  text << "    jmp " << *node.return_label << "\n";
 }
 
 void Codegen::generate_variable_declaration(

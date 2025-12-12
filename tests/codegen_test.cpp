@@ -6,11 +6,12 @@
 #include <memory>
 
 TEST(ReturnStatement, ReturnIntegerLiteral) {
+  ProgramBuilder builder;
+
   constexpr int return_value = 123;
   auto return_node = std::make_unique<ReturnNode>(
       std::make_unique<IntegerLiteralNode>(return_value));
-
-  ProgramBuilder builder;
+  return_node->return_label = builder.get_main_return_label();
   builder.add_to_main(std::move(return_node));
   auto program = builder.build();
 
@@ -44,6 +45,7 @@ TEST(ReturnStatement, ReturnGlobalVariable) {
   auto ident_node_return = std::make_unique<IdentifierNode>("global_var");
   ident_node_return->variable_annotation = var_info;
   auto return_node = std::make_unique<ReturnNode>(std::move(ident_node_return));
+  return_node->return_label = builder.get_main_return_label();
   builder.add_to_main(std::move(return_node));
 
   auto program = builder.build();
@@ -78,6 +80,7 @@ TEST(ReturnStatement, ReturnLocalVariable) {
   auto ident_node_return = std::make_unique<IdentifierNode>("local_var");
   ident_node_return->variable_annotation = var_info;
   auto return_node = std::make_unique<ReturnNode>(std::move(ident_node_return));
+  return_node->return_label = builder.get_main_return_label();
   builder.add_to_main(std::move(return_node));
 
   auto program = builder.build();
@@ -104,12 +107,15 @@ TEST(GlobalVar, GlobalVariableDeclaration) {
 
   auto return_node =
       std::make_unique<ReturnNode>(std::make_unique<IntegerLiteralNode>(0));
+  return_node->return_label = builder.get_main_return_label();
   builder.add_to_main(std::move(return_node));
 
   auto program = builder.build();
 
   auto codegen = Codegen();
   const auto actual_as = codegen.generate_assembly(*program);
+
+  fmt::print("Generated assembly:\n{}", actual_as);
 
   const auto expected_as = read_test_data("global_var_decl.as");
 
@@ -136,6 +142,7 @@ TEST(GlobalVar, GlobalVariableInitialization) {
 
   auto return_node =
       std::make_unique<ReturnNode>(std::make_unique<IntegerLiteralNode>(0));
+  return_node->return_label = builder.get_main_return_label();
   builder.add_to_main(std::move(return_node));
 
   auto program = builder.build();

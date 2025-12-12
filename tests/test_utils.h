@@ -21,6 +21,11 @@ public:
     main_function = std::make_unique<FunctionDefinitionNode>(
         Datatype::INTEGER, std::make_unique<IdentifierNode>("huvud"),
         std::vector<std::unique_ptr<ParameterNode>>{}, std::move(main_body));
+
+    std::string return_label = ".exit_huvud";
+    auto scope_info = ScopeInfo(ScopeType::Function);
+    scope_info.return_label = return_label;
+    main_function->body->scope_annotation = scope_info;
   }
 
   void add_global_statement(std::unique_ptr<StatementNode> stmt) {
@@ -37,12 +42,15 @@ public:
   }
 
   std::unique_ptr<ScopeNode> build() {
-    // If main function body has no scope annotation, add an empty one
-    if (!main_function->body->scope_annotation) {
-      main_function->body->scope_annotation = ScopeInfo(ScopeType::Function);
-    }
     add_global_statement(std::move(main_function));
     return std::move(global_scope);
+  }
+
+  std::string get_main_return_label() const {
+    if (!main_function->body->scope_annotation.has_value()) {
+      throw std::runtime_error("Main function scope not annotated");
+    }
+    return main_function->body->scope_annotation->return_label;
   }
 
 private:

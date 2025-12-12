@@ -38,4 +38,5 @@ struct ScopeInfo {
   ScopeType type;
   int stack_size = 0;
   std::map<std::string, std::shared_ptr<VariableInfo>> variables;
+  std::string return_label;
 };
