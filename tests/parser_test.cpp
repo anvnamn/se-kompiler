@@ -1,5 +1,3 @@
-// NOLINTBEGIN(cppcoreguidelines-owning-memory)
-
 #include "lexer.h"
 #include "parser.h"
 #include "test_utils.h"
@@ -272,5 +270,3 @@ TEST(ParseProgram, HelloWorld) {
   TokenStream ts = tokenize(source_file);
   auto ast = parse_tokens(ts);
 }
-
-// NOLINTEND(cppcoreguidelines-owning-memory)

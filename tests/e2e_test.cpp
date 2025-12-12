@@ -1,5 +1,3 @@
-// NOLINTBEGIN(cppcoreguidelines-owning-memory)
-
 #include "codegen.h"
 #include "lexer.h"
 #include "parser.h"
@@ -42,5 +40,3 @@ TEST(E2E, Return123) {
     FAIL() << "Compiled binary did not exit normally";
   }
 }
-
-// NOLINTEND(cppcoreguidelines-owning-memory)

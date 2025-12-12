@@ -1,6 +1,3 @@
-// NOLINTBEGIN(cppcoreguidelines-owning-memory, cppcoreguidelines-avoid-goto,
-// bugprone-unchecked-optional-access)
-
 #include "node.h"
 #include "semantic_analyzer.h"
 #include "test_utils.h"
@@ -296,6 +293,3 @@ TEST(Function, DuplicateFunctionDefinition) {
     EXPECT_TRUE(msg.starts_with("Duplicate function definition"));
   }
 }
-
-// NOLINTEND(cppcoreguidelines-owning-memory, cppcoreguidelines-avoid-goto,
-// bugprone-unchecked-optional-access)

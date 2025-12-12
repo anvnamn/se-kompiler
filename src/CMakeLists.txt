@@ -14,12 +14,6 @@ target_include_directories(mycompiler_lib
         ${PROJECT_SOURCE_DIR}/include
 )
 
-target_include_directories(mycompiler_lib
-    SYSTEM PUBLIC
-        ${fmt_SOURCE_DIR}/include
-        ${cxxopts_SOURCE_DIR}/include
-)
-
 add_executable(sek
     main.cpp
 )
