@@ -78,12 +78,14 @@ TEST(LocalVar, AnnotateLocalVar) {
       dynamic_cast<FunctionDefinitionNode *>(program->statements[0].get());
   ASSERT_EQ(main_func->body->statements.size(),
             local_vars.size() + 1); // vars + return stmt
-  const auto scope_annotation = main_func->body->scope_annotation;
-  ASSERT_NE(scope_annotation, std::nullopt);
-  ASSERT_EQ(scope_annotation->stack_size, 8); // 2 integers = 8 bytes
+  if (!main_func->body->scope_annotation.has_value()) {
+    FAIL() << "Main function body has no scope annotation";
+  }
+  const auto scope_annotation = main_func->body->scope_annotation.value();
+  ASSERT_EQ(scope_annotation.stack_size, 8); // 2 integers = 8 bytes
   for (const auto &[var_name, expected_offset] : local_vars) {
-    ASSERT_TRUE(scope_annotation->variables.contains(var_name));
-    const auto var_info = scope_annotation->variables.at(var_name).get();
+    ASSERT_TRUE(scope_annotation.variables.contains(var_name));
+    const auto var_info = scope_annotation.variables.at(var_name).get();
     ASSERT_EQ(var_info->stack_offset, expected_offset);
     ASSERT_EQ(var_info->name, var_name);
     ASSERT_EQ(var_info->type, Datatype::INTEGER);
@@ -167,10 +169,12 @@ TEST(BlockScope, DeclareIntegers) {
   auto main_func =
       dynamic_cast<FunctionDefinitionNode *>(program->statements[0].get());
   ASSERT_EQ(main_func->body->statements.size(), 1);
+  if (!scope_node_ptr->scope_annotation.has_value()) {
+    FAIL();
+  }
   const auto scope_annotation = scope_node_ptr->scope_annotation;
   ASSERT_EQ(scope_annotation->stack_size, 8);
   for (int i{0}; i < var_names.size(); i++) {
-    const auto var_name = var_names[i];
     const auto stack_offset =
         scope_annotation->variables.at(var_names[i]).get()->stack_offset;
     ASSERT_TRUE(scope_annotation->variables.contains(var_names[i]));
@@ -239,7 +243,10 @@ TEST(BlockScope, NestedScopes) {
   analyzer.analyze_program(program.get());
 
   for (auto ptr : scope_raw_ptrs) {
-    ASSERT_EQ(ptr->scope_annotation->stack_size, 4);
+    if (!ptr->scope_annotation.has_value()) {
+      FAIL();
+    }
+    ASSERT_EQ(ptr->scope_annotation.value().stack_size, 4);
   }
 }
 
