@@ -123,7 +123,6 @@ protected:
 class FunctionDefinitionNode : public FunctionDeclarationNode {
 public:
   std::unique_ptr<ScopeNode> body;
-  std::optional<std::string> return_label;
 
   FunctionDefinitionNode(Datatype returnType,
                          std::unique_ptr<IdentifierNode> functionName,

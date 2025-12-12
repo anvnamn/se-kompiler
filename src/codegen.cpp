@@ -72,12 +72,12 @@ void Codegen::generate_function_def(const FunctionDefinitionNode &node) {
 
   generate_scope(*node.body);
 
-  if (!node.return_label) {
-    throw std::runtime_error(fmt::format("Function {} has no return label",
-                                         node.functionName->name));
+  if (node.body->scope_annotation->return_label.empty()) {
+    throw std::runtime_error(fmt::format(
+        "Function {}'s body has no return label", node.functionName->name));
   }
 
-  text << *node.return_label << ":\n";
+  text << node.body->scope_annotation->return_label << ":\n";
   text << "    mov %rbp, %rsp\n"; // restore stack pointer
   text << "    pop %rbp\n";       // restore caller base pointer
   text << "    ret\n";

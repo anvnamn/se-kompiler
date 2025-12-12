@@ -116,7 +116,6 @@ void SemanticAnalyzer::analyze_func_decl(FunctionDeclarationNode *func_decl) {
   }
   if (func_def) {
     auto return_label = fmt::format("{}_return", func_name);
-    func_def->return_label = return_label; // Annotate function definition
     auto scope_info = ScopeInfo(ScopeType::Function);
     scope_info.return_label = return_label;
     scope_stack.push_back(scope_info); // Enter function scope

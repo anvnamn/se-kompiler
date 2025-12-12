@@ -25,7 +25,6 @@ public:
     std::string return_label = ".exit_huvud";
     auto scope_info = ScopeInfo(ScopeType::Function);
     scope_info.return_label = return_label;
-    main_function->return_label = return_label;
     main_function->body->scope_annotation = scope_info;
   }
 
@@ -40,7 +39,6 @@ public:
 
   void annotate_main_scope(const ScopeInfo &info) {
     main_function->body->scope_annotation = info;
-    main_function->return_label = info.return_label;
   }
 
   std::unique_ptr<ScopeNode> build() {
