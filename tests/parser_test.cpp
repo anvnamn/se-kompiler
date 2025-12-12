@@ -6,8 +6,8 @@
 
 TEST(ReturnStatement, VoidReturn) {
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<ReturnToken>());
-  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  tokens.push_back(std::make_unique<ReturnToken>());
+  tokens.push_back(std::make_unique<TerminatorToken>());
 
   auto ts = TokenStream{std::move(tokens)};
   auto ast = parse_tokens(ts);
@@ -22,9 +22,9 @@ TEST(ReturnStatement, VoidReturn) {
 TEST(ReturnStatement, IntReturn) {
   constexpr int return_value = 1337;
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<ReturnToken>());
-  tokens.emplace_back(std::make_unique<IntegerLiteralToken>(return_value));
-  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  tokens.push_back(std::make_unique<ReturnToken>());
+  tokens.push_back(std::make_unique<IntegerLiteralToken>(return_value));
+  tokens.push_back(std::make_unique<TerminatorToken>());
 
   auto ts = TokenStream{std::move(tokens)};
   auto ast = parse_tokens(ts);
@@ -44,8 +44,8 @@ TEST(ReturnStatement, IntReturn) {
 
 TEST(ReturnStatement, MissingTerminator) {
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<ReturnToken>());
-  tokens.emplace_back(std::make_unique<ClosedSquigglyToken>());
+  tokens.push_back(std::make_unique<ReturnToken>());
+  tokens.push_back(std::make_unique<ClosedSquigglyToken>());
 
   auto ts = TokenStream{std::move(tokens)};
   try {
@@ -60,11 +60,11 @@ TEST(ReturnStatement, MissingTerminator) {
 
 TEST(FunctionDeclaration, VoidReturnNoParams) {
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::VOID));
-  tokens.emplace_back(std::make_unique<IdentifierToken>("min_funktion"));
-  tokens.emplace_back(std::make_unique<OpenParenToken>());
-  tokens.emplace_back(std::make_unique<ClosedParenToken>());
-  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  tokens.push_back(std::make_unique<DataTypeToken>(Datatype::VOID));
+  tokens.push_back(std::make_unique<IdentifierToken>("min_funktion"));
+  tokens.push_back(std::make_unique<OpenParenToken>());
+  tokens.push_back(std::make_unique<ClosedParenToken>());
+  tokens.push_back(std::make_unique<TerminatorToken>());
 
   auto ts = TokenStream{std::move(tokens)};
   auto ast = parse_tokens(ts);
@@ -81,11 +81,11 @@ TEST(FunctionDeclaration, VoidReturnNoParams) {
 
 TEST(FunctionDeclaration, IntReturnNoParams) {
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
-  tokens.emplace_back(std::make_unique<IdentifierToken>("min_heltalsfunktion"));
-  tokens.emplace_back(std::make_unique<OpenParenToken>());
-  tokens.emplace_back(std::make_unique<ClosedParenToken>());
-  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  tokens.push_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
+  tokens.push_back(std::make_unique<IdentifierToken>("min_heltalsfunktion"));
+  tokens.push_back(std::make_unique<OpenParenToken>());
+  tokens.push_back(std::make_unique<ClosedParenToken>());
+  tokens.push_back(std::make_unique<TerminatorToken>());
 
   auto ts = TokenStream{std::move(tokens)};
   auto ast = parse_tokens(ts);
@@ -104,14 +104,14 @@ TEST(FunctionDeclaration, IntReturnNoParams) {
 TEST(FunctionDefinition, VoidReturnNoParams) {
   constexpr int func_return_value = 123;
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::VOID));
-  tokens.emplace_back(std::make_unique<IdentifierToken>("min_heltalsfunktion"));
-  tokens.emplace_back(std::make_unique<OpenParenToken>());
-  tokens.emplace_back(std::make_unique<ClosedParenToken>());
-  tokens.emplace_back(std::make_unique<OpenSquigglyToken>());
-  tokens.emplace_back(std::make_unique<ReturnToken>());
-  tokens.emplace_back(std::make_unique<TerminatorToken>());
-  tokens.emplace_back(std::make_unique<ClosedSquigglyToken>());
+  tokens.push_back(std::make_unique<DataTypeToken>(Datatype::VOID));
+  tokens.push_back(std::make_unique<IdentifierToken>("min_heltalsfunktion"));
+  tokens.push_back(std::make_unique<OpenParenToken>());
+  tokens.push_back(std::make_unique<ClosedParenToken>());
+  tokens.push_back(std::make_unique<OpenSquigglyToken>());
+  tokens.push_back(std::make_unique<ReturnToken>());
+  tokens.push_back(std::make_unique<TerminatorToken>());
+  tokens.push_back(std::make_unique<ClosedSquigglyToken>());
 
   auto ts = TokenStream{std::move(tokens)};
   auto ast = parse_tokens(ts);
@@ -141,15 +141,15 @@ TEST(FunctionDefinition, VoidReturnNoParams) {
 TEST(FunctionDefinition, IntReturnNoParams) {
   constexpr int func_return_value = 123;
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
-  tokens.emplace_back(std::make_unique<IdentifierToken>("min_heltalsfunktion"));
-  tokens.emplace_back(std::make_unique<OpenParenToken>());
-  tokens.emplace_back(std::make_unique<ClosedParenToken>());
-  tokens.emplace_back(std::make_unique<OpenSquigglyToken>());
-  tokens.emplace_back(std::make_unique<ReturnToken>());
-  tokens.emplace_back(std::make_unique<IntegerLiteralToken>(func_return_value));
-  tokens.emplace_back(std::make_unique<TerminatorToken>());
-  tokens.emplace_back(std::make_unique<ClosedSquigglyToken>());
+  tokens.push_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
+  tokens.push_back(std::make_unique<IdentifierToken>("min_heltalsfunktion"));
+  tokens.push_back(std::make_unique<OpenParenToken>());
+  tokens.push_back(std::make_unique<ClosedParenToken>());
+  tokens.push_back(std::make_unique<OpenSquigglyToken>());
+  tokens.push_back(std::make_unique<ReturnToken>());
+  tokens.push_back(std::make_unique<IntegerLiteralToken>(func_return_value));
+  tokens.push_back(std::make_unique<TerminatorToken>());
+  tokens.push_back(std::make_unique<ClosedSquigglyToken>());
 
   auto ts = TokenStream{std::move(tokens)};
   auto ast = parse_tokens(ts);
@@ -181,9 +181,9 @@ TEST(FunctionDefinition, IntReturnNoParams) {
 
 TEST(VariableDeclaration, Integer) {
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
-  tokens.emplace_back(std::make_unique<IdentifierToken>("heltal"));
-  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  tokens.push_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
+  tokens.push_back(std::make_unique<IdentifierToken>("heltal"));
+  tokens.push_back(std::make_unique<TerminatorToken>());
   auto ts = TokenStream{std::move(tokens)};
   auto ast = parse_tokens(ts);
 
@@ -199,11 +199,11 @@ TEST(VariableDeclaration, Integer) {
 TEST(VariableInitialization, IntegerLiteral) {
   constexpr int literal_value = 123123;
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
-  tokens.emplace_back(std::make_unique<IdentifierToken>("en_variabel"));
-  tokens.emplace_back(std::make_unique<AssignmentToken>());
-  tokens.emplace_back(std::make_unique<IntegerLiteralToken>(literal_value));
-  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  tokens.push_back(std::make_unique<DataTypeToken>(Datatype::INTEGER));
+  tokens.push_back(std::make_unique<IdentifierToken>("en_variabel"));
+  tokens.push_back(std::make_unique<AssignmentToken>());
+  tokens.push_back(std::make_unique<IntegerLiteralToken>(literal_value));
+  tokens.push_back(std::make_unique<TerminatorToken>());
   auto ts = TokenStream{std::move(tokens)};
   auto ast = parse_tokens(ts);
 
@@ -224,10 +224,10 @@ TEST(VariableInitialization, IntegerLiteral) {
 TEST(VariableAssignment, IntegerLiteral) {
   constexpr int literal_value = 112233;
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<IdentifierToken>("heltal"));
-  tokens.emplace_back(std::make_unique<AssignmentToken>());
-  tokens.emplace_back(std::make_unique<IntegerLiteralToken>(literal_value));
-  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  tokens.push_back(std::make_unique<IdentifierToken>("heltal"));
+  tokens.push_back(std::make_unique<AssignmentToken>());
+  tokens.push_back(std::make_unique<IntegerLiteralToken>(literal_value));
+  tokens.push_back(std::make_unique<TerminatorToken>());
   auto ts = TokenStream{std::move(tokens)};
   auto ast = parse_tokens(ts);
 
@@ -245,12 +245,12 @@ TEST(VariableAssignment, IntegerLiteral) {
 TEST(VariableAssignment, NegIntegerLiteral) {
   constexpr int literal_value = -112233;
   Tokens tokens;
-  tokens.emplace_back(std::make_unique<IdentifierToken>("heltal"));
-  tokens.emplace_back(std::make_unique<AssignmentToken>());
-  tokens.emplace_back(std::make_unique<SubtractionToken>());
-  tokens.emplace_back(
+  tokens.push_back(std::make_unique<IdentifierToken>("heltal"));
+  tokens.push_back(std::make_unique<AssignmentToken>());
+  tokens.push_back(std::make_unique<SubtractionToken>());
+  tokens.push_back(
       std::make_unique<IntegerLiteralToken>(-literal_value)); // Positive value
-  tokens.emplace_back(std::make_unique<TerminatorToken>());
+  tokens.push_back(std::make_unique<TerminatorToken>());
   auto ts = TokenStream{std::move(tokens)};
   auto ast = parse_tokens(ts);
 
