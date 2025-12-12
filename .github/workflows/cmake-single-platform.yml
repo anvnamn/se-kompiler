@@ -4,7 +4,17 @@ on:
   push:
 
 jobs:
-  lint:
+  clang-format:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Run clang-format
+      run: find src include tests -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
+
+  clang-tidy:
     runs-on: self-hosted
 
     steps:
@@ -13,9 +23,6 @@ jobs:
       
     - name: Generate compile commands
       run: bash build.sh config
-
-    - name: Run clang-format
-      run: find src include tests -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
 
     - name: Run clang-tidy
       run: find src tests -name "*.cpp" | xargs -n1 -P "$(nproc)" clang-tidy -p build
