@@ -2,6 +2,7 @@
 
 #include "symbol.h"
 #include "token.h"
+#include "visitor.h"
 #include <fmt/core.h>
 #include <optional>
 #include <ostream>
@@ -14,6 +15,8 @@ public:
   ASTNode &operator=(ASTNode &&) = delete;
 
   virtual ~ASTNode() = default;
+
+  virtual void accept(Visitor *visitor) const = 0;
 
 protected:
   ASTNode() = default;
@@ -45,6 +48,10 @@ public:
 
   explicit IntegerLiteralNode(int value) : value(value) {}
 
+  void accept(Visitor *visitor) const override {
+    visitor->visit_int_literal_node(this);
+  }
+
 protected:
   void print(std::ostream &os) const override {
     os << "IntegerLiteralnode: " << value;
@@ -59,6 +66,10 @@ public:
 
   ScopeNode(std::vector<std::unique_ptr<StatementNode>> statements)
       : statements(std::move(statements)) {}
+
+  void accept(Visitor *visitor) const override {
+    visitor->visit_scope_node(this);
+  }
 
 protected:
   void print(std::ostream &os) const override {
@@ -77,6 +88,10 @@ public:
 
   explicit IdentifierNode(std::string name) : name(name) {}
 
+  void accept(Visitor *visitor) const override {
+    visitor->visit_identifier_node(this);
+  };
+
 protected:
   void print(std::ostream &os) const override { os << "ScopeNode: " << name; }
 };
@@ -88,6 +103,10 @@ public:
 
   ParameterNode(Datatype datatype, std::unique_ptr<IdentifierNode> name)
       : datatype(std::move(datatype)), name(std::move(name)) {}
+
+  void accept(Visitor *visitor) const override {
+    visitor->visit_parameter_node(this);
+  }
 
 protected:
   void print(std::ostream &os) const override {
@@ -106,6 +125,10 @@ public:
       std::vector<std::unique_ptr<ParameterNode>> parameters)
       : returnType(returnType), functionName(std::move(functionName)),
         parameters(std::move(parameters)) {}
+
+  void accept(Visitor *visitor) const override {
+    visitor->visit_func_decl_node(this);
+  }
 
 protected:
   void print(std::ostream &os) const override {
@@ -132,6 +155,10 @@ public:
                                 std::move(parameters)),
         body(std::move(body)) {}
 
+  void accept(Visitor *visitor) const override {
+    visitor->visit_func_def_node(this);
+  }
+
 protected:
   void print(std::ostream &os) const override {
     os << "Function definition: " << returnType << *functionName << "(";
@@ -157,6 +184,10 @@ public:
   explicit ReturnNode(std::unique_ptr<ExpressionNode> expression)
       : expression(std::move(expression)) {}
 
+  void accept(Visitor *visitor) const override {
+    visitor->visit_return_node(this);
+  }
+
 protected:
   void print(std::ostream &os) const override {
     if (expression) {
@@ -176,6 +207,10 @@ public:
                  std::unique_ptr<ExpressionNode> expression)
       : variable(std::move(variable)), expression(std::move(expression)) {}
 
+  void accept(Visitor *visitor) const override {
+    visitor->visit_assignment_node(this);
+  }
+
 protected:
   void print(std::ostream &os) const override {
     os << "Assignment: " << variable << "=" << expression;
@@ -190,6 +225,10 @@ public:
   VariableDeclarationNode(Datatype datatype,
                           std::unique_ptr<IdentifierNode> variable)
       : datatype(datatype), variable(std::move(variable)) {}
+
+  void accept(Visitor *visitor) const override {
+    visitor->visit_var_decl_node(this);
+  }
 
 protected:
   void print(std::ostream &os) const override {
@@ -206,6 +245,10 @@ public:
                              std::unique_ptr<ExpressionNode> expr)
       : VariableDeclarationNode(std::move(datatype), std::move(variable)),
         expr(std::move(expr)) {}
+
+  void accept(Visitor *visitor) const override {
+    visitor->visit_var_init_node(this);
+  }
 
 protected:
   void print(std::ostream &os) const override {

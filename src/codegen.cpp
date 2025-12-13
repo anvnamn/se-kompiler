@@ -22,44 +22,35 @@ std::string Codegen::generate_assembly(const ScopeNode &program) {
 
   bss << ".bss\n";
 
-  generate_scope(program);
-
+  program.accept(this);
   return text.str() + data.str() + bss.str();
 }
 
-void Codegen::generate_statement(const StatementNode &node) {
-  if (auto *func_def = dynamic_cast<const FunctionDefinitionNode *>(&node)) {
-    generate_function_def(*func_def);
-  } else if (auto *ret_node = dynamic_cast<const ReturnNode *>(&node)) {
-    generate_return_node(*ret_node);
-  } else if (auto *variable_decl =
-                 dynamic_cast<const VariableDeclarationNode *>(&node)) {
-    generate_variable_declaration(*variable_decl);
-  } else {
-    throw std::runtime_error(fmt::format(
-        "Node {} not implemented in code generation", to_string(node)));
+void Codegen::visit_scope_node(const ScopeNode *node) {
+  for (const auto &stmt : node->statements) {
+    stmt->accept(this);
   }
 }
 
-void Codegen::generate_function_def(const FunctionDefinitionNode &node) {
-  text << node.functionName->name << ":"
+void Codegen::visit_func_def_node(const FunctionDefinitionNode *node) {
+  text << node->functionName->name << ":"
        << "\n";
 
   text << "    push %rbp\n";      // save caller base pointer
   text << "    mov %rsp, %rbp\n"; // set base pointer to top of stack
 
-  if (!node.body) {
+  if (!node->body) {
     throw std::runtime_error(
-        fmt::format("Function {} has null body", node.functionName->name));
+        fmt::format("Function {} has null body", node->functionName->name));
   }
 
-  if (!node.body->scope_annotation) {
+  if (!node->body->scope_annotation) {
     throw std::runtime_error(fmt::format("Function {} has no scope annotation",
-                                         node.functionName->name));
+                                         node->functionName->name));
   }
 
   // Allocate stack space for local variables
-  int local_var_size = node.body->scope_annotation->stack_size;
+  int local_var_size = node->body->scope_annotation->stack_size;
   // Make sure local_var_size is a multiple of 16
   constexpr int stack_alignment = 16;
   int remainder = local_var_size % stack_alignment;
@@ -70,31 +61,25 @@ void Codegen::generate_function_def(const FunctionDefinitionNode &node) {
     text << fmt::format("    sub ${}, %rsp\n", local_var_size);
   }
 
-  generate_scope(*node.body);
+  node->body->accept(this); // Visit function body
 
-  if (node.body->scope_annotation->return_label.empty()) {
+  if (node->body->scope_annotation->return_label.empty()) {
     throw std::runtime_error(fmt::format(
-        "Function {}'s body has no return label", node.functionName->name));
+        "Function {}'s body has no return label", node->functionName->name));
   }
 
-  text << node.body->scope_annotation->return_label << ":\n";
+  text << node->body->scope_annotation->return_label << ":\n";
   text << "    mov %rbp, %rsp\n"; // restore stack pointer
   text << "    pop %rbp\n";       // restore caller base pointer
   text << "    ret\n";
 }
 
-void Codegen::generate_scope(const ScopeNode &node) {
-  for (const auto &stmt : node.statements) {
-    generate_statement(*stmt);
-  }
-}
-
-void Codegen::generate_return_node(const ReturnNode &node) {
+void Codegen::visit_return_node(const ReturnNode *node) {
   if (const auto *int_lit =
-          dynamic_cast<const IntegerLiteralNode *>(node.expression.get())) {
+          dynamic_cast<const IntegerLiteralNode *>(node->expression.get())) {
     text << "    movq $" << int_lit->value << ", %rax\n";
   } else if (const auto *identifier =
-                 dynamic_cast<const IdentifierNode *>(node.expression.get())) {
+                 dynamic_cast<const IdentifierNode *>(node->expression.get())) {
     const auto var_info = identifier->variable_annotation;
     if (!var_info) {
       throw std::runtime_error(
@@ -115,23 +100,23 @@ void Codegen::generate_return_node(const ReturnNode &node) {
     throw std::runtime_error("Unsupported return expression type");
   }
 
-  if (!node.return_label) {
+  if (!node->return_label) {
     throw std::runtime_error("Return node has no return label");
   }
-  text << "    jmp " << *node.return_label << "\n";
+  text << "    jmp " << *node->return_label << "\n";
 }
 
-void Codegen::generate_variable_declaration(
-    const VariableDeclarationNode &node) {
-  const auto var_info = node.variable->variable_annotation;
+void Codegen::visit_var_decl_node(const VariableDeclarationNode *node) {
+
+  const auto var_info = node->variable->variable_annotation;
   if (!var_info) {
     throw std::runtime_error(
-        fmt::format("Variable {} has no annotation", node.variable->name));
+        fmt::format("Variable {} has no annotation", node->variable->name));
   }
 
   if (var_info->is_global) {
     if (const auto var_init =
-            dynamic_cast<const VariableInitializationNode *>(&node)) {
+            dynamic_cast<const VariableInitializationNode *>(node)) {
       // Global variable definition with initialization
       if (const auto int_lit =
               dynamic_cast<const IntegerLiteralNode *>(var_init->expr.get())) {
@@ -149,7 +134,7 @@ void Codegen::generate_variable_declaration(
     }
   } else {
     if (const auto var_init =
-            dynamic_cast<const VariableInitializationNode *>(&node)) {
+            dynamic_cast<const VariableInitializationNode *>(node)) {
       if (const auto int_lit =
               dynamic_cast<IntegerLiteralNode *>(var_init->expr.get())) {
         text << fmt::format("    movl ${}, -{}(%rbp)\n", int_lit->value,
@@ -164,4 +149,33 @@ void Codegen::generate_variable_declaration(
               // initialization
     }
   }
+}
+
+void Codegen::visit_int_literal_node(const IntegerLiteralNode *node) {
+  // Integer literals are typically handled in context (e.g., in return
+  // statements) This is a no-op in most cases
+}
+
+void Codegen::visit_identifier_node(const IdentifierNode *node) {
+  // Identifiers are typically handled in context
+  // This is a no-op in most cases
+}
+
+void Codegen::visit_parameter_node(const ParameterNode *node) {
+  // Parameters are handled during function definition setup
+  // This is a no-op in most cases
+}
+
+void Codegen::visit_func_decl_node(const FunctionDeclarationNode *node) {
+  // Function declarations without definitions don't generate code
+}
+
+void Codegen::visit_assignment_node(const AssignmentNode *node) {
+  // Assignment handling can be added here when needed
+  throw std::runtime_error("Assignment code generation not yet implemented");
+}
+
+void Codegen::visit_var_init_node(const VariableInitializationNode *node) {
+  // Delegate to var_decl_node since initialization is handled there
+  visit_var_decl_node(node);
 }
