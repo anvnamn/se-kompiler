@@ -4,6 +4,8 @@
 #include <fmt/format.h>
 #include <gtest/gtest.h>
 
+constexpr int INTEGER_SIZE = 4;
+
 TEST(GlobalVar, AnnotateGlobalVar) {
   const std::string expected_var_name = "global_var";
   constexpr Datatype expected_data_type = Datatype::INTEGER;
@@ -55,10 +57,10 @@ TEST(GlobalVar, DuplicateGlobalVar) {
 
 TEST(LocalVar, AnnotateLocalVar) {
   // Local variable names and expected stack offsets
-  std::vector<std::pair<std::string, int>> local_vars = {
-      {"local_var_one", -4},
-      {"local_var_two", -8},
-  };
+  std::vector<std::pair<std::string, int>> local_vars;
+  int stack_size = 0;
+  local_vars.push_back({"local_var_one", stack_size -= INTEGER_SIZE});
+  local_vars.push_back({"local_var_two", stack_size - INTEGER_SIZE});
 
   ProgramBuilder builder;
   for (const auto &[var_name, _] : local_vars) {
@@ -146,12 +148,14 @@ TEST(AnnotateIdentifier, ReturnStatement) {
 
 TEST(BlockScope, DeclareIntegers) {
   std::vector<std::unique_ptr<StatementNode>> block_statements;
-  const std::vector<std::string> var_names = {"var_one", "var_two"};
-  const std::vector<int> expected_stack_offsets = {-4, -8};
+  std::vector<std::pair<std::string, int>> local_vars;
+  int stack_size = 0;
+  local_vars.push_back({"var_one", stack_size -= INTEGER_SIZE});
+  local_vars.push_back({"var_two", stack_size - INTEGER_SIZE});
 
-  for (auto name : var_names) {
+  for (auto var : local_vars) {
     auto var_decl = std::make_unique<VariableDeclarationNode>(
-        Datatype::INTEGER, std::make_unique<IdentifierNode>(name));
+        Datatype::INTEGER, std::make_unique<IdentifierNode>(var.first));
 
     block_statements.push_back(std::move(var_decl));
   }
@@ -174,11 +178,13 @@ TEST(BlockScope, DeclareIntegers) {
   }
   const auto scope_annotation = scope_node_ptr->scope_annotation;
   ASSERT_EQ(scope_annotation->stack_size, 8);
-  for (int i{0}; i < var_names.size(); i++) {
+  for (auto var : local_vars) {
     const auto stack_offset =
-        scope_annotation->variables.at(var_names[i]).get()->stack_offset;
-    ASSERT_TRUE(scope_annotation->variables.contains(var_names[i]));
-    ASSERT_EQ(stack_offset, expected_stack_offsets[i]);
+        scope_annotation->variables.at(var.first).get()->stack_offset;
+    const auto var_name = var.first;
+    const auto stack_offset_expected = var.second;
+    ASSERT_TRUE(scope_annotation->variables.contains(var_name));
+    ASSERT_EQ(stack_offset, stack_offset_expected);
   }
 }
 
