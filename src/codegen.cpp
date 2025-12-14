@@ -113,40 +113,15 @@ void Codegen::visit_var_decl_node(const VariableDeclarationNode *node) {
     throw std::runtime_error(
         fmt::format("Variable {} has no annotation", node->variable->name));
   }
-
+  // Local vars need no code generated for declarations
   if (var_info->is_global) {
-    if (const auto var_init =
-            dynamic_cast<const VariableInitializationNode *>(node)) {
-      // Global variable definition with initialization
-      if (const auto int_lit =
-              dynamic_cast<const IntegerLiteralNode *>(var_init->expr.get())) {
-        data << var_info->name << ":\n";
-        data << fmt::format("    .long {}\n", int_lit->value);
-        return;
-      }
-      throw std::runtime_error(
-          "Only integer literals are supported in global variable "
-          "initializations so far");
-    } else {
-      // Global variable declaration without initialization
+    if (var_info->type == Datatype::INTEGER) {
       bss << fmt::format("    .lcomm {}, 4\n",
                          var_info->name); // 4 bytes for integer
-    }
-  } else {
-    if (const auto var_init =
-            dynamic_cast<const VariableInitializationNode *>(node)) {
-      if (const auto int_lit =
-              dynamic_cast<IntegerLiteralNode *>(var_init->expr.get())) {
-        text << fmt::format("    movl ${}, -{}(%rbp)\n", int_lit->value,
-                            var_info->stack_offset);
-      } else {
-        throw std::runtime_error(
-            "Only integer literals are supported in local variable "
-            "initializations so far");
-      }
     } else {
-      return; // No code needed for local variable declaration without
-              // initialization
+      throw std::runtime_error(
+          "Only integer literals are supported in variable "
+          "initializations so far");
     }
   }
 }
@@ -176,6 +151,25 @@ void Codegen::visit_assignment_node(const AssignmentNode *node) {
 }
 
 void Codegen::visit_var_init_node(const VariableInitializationNode *node) {
-  // Delegate to var_decl_node since initialization is handled there
-  visit_var_decl_node(node);
+  const auto var_info = node->variable->variable_annotation;
+  if (!var_info) {
+    throw std::runtime_error(
+        fmt::format("Variable {} has no annotation", node->variable->name));
+  }
+
+  if (const auto int_lit =
+          dynamic_cast<const IntegerLiteralNode *>(node->expr.get())) {
+    if (var_info->is_global) {
+      data << var_info->name << ":\n";
+      data << fmt::format("    .long {}\n", int_lit->value);
+      return;
+    } else {
+      text << fmt::format("    movl ${}, -{}(%rbp)\n", int_lit->value,
+                          var_info->stack_offset);
+      return;
+    }
+  } else {
+    throw std::runtime_error("Only integer literals are supported in variable "
+                             "initializations so far");
+  }
 }
