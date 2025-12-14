@@ -56,8 +56,8 @@ TEST(GlobalVar, DuplicateGlobalVar) {
 TEST(LocalVar, AnnotateLocalVar) {
   // Local variable names and expected stack offsets
   std::vector<std::pair<std::string, int>> local_vars = {
-      {"local_var_one", 0},
-      {"local_var_two", 4},
+      {"local_var_one", -4},
+      {"local_var_two", -8},
   };
 
   ProgramBuilder builder;
@@ -147,7 +147,7 @@ TEST(AnnotateIdentifier, ReturnStatement) {
 TEST(BlockScope, DeclareIntegers) {
   std::vector<std::unique_ptr<StatementNode>> block_statements;
   const std::vector<std::string> var_names = {"var_one", "var_two"};
-  const std::vector<int> expected_stack_offsets = {0, 4};
+  const std::vector<int> expected_stack_offsets = {-4, -8};
 
   for (auto name : var_names) {
     auto var_decl = std::make_unique<VariableDeclarationNode>(

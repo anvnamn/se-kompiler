@@ -61,8 +61,8 @@ void SemanticAnalyzer::analyze_var_decl(VariableDeclarationNode *var_decl) {
     fmt::println("{} in global scope", var_name);
   } else {
     fmt::println("{} in local/function scope", var_name);
-    var_info->stack_offset = scope_stack.back().stack_size;
     scope_stack.back().stack_size += 4; // Integer size is 4 bytes.
+    var_info->stack_offset = -scope_stack.back().stack_size;
     fmt::println("Stack size now {}", scope_stack.back().stack_size);
   }
   scope_stack.back().variables[var_name] = var_info;

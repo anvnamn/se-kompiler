@@ -90,7 +90,7 @@ void Codegen::visit_return_node(const ReturnNode *node) {
       text << fmt::format("    movl {}(%rip), %eax\n", var_info->name);
     } else {
       if (var_info->type == Datatype::INTEGER) {
-        text << fmt::format("    movl -{}(%rbp), %eax\n",
+        text << fmt::format("    movl {}(%rbp), %eax\n",
                             var_info->stack_offset);
       } else {
         throw std::runtime_error("Unsupported local variable type in return");
@@ -164,7 +164,7 @@ void Codegen::visit_var_init_node(const VariableInitializationNode *node) {
       data << fmt::format("    .long {}\n", int_lit->value);
       return;
     } else {
-      text << fmt::format("    movl ${}, -{}(%rbp)\n", int_lit->value,
+      text << fmt::format("    movl ${}, {}(%rbp)\n", int_lit->value,
                           var_info->stack_offset);
       return;
     }
