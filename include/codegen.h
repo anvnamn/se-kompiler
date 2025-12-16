@@ -3,18 +3,18 @@
 
 class Codegen : public Visitor {
 public:
-  std::string generate_assembly(const ScopeNode &program);
+  std::string generate_assembly(ScopeNode &program);
 
-  void visit_int_literal_node(const IntegerLiteralNode *node) override;
-  void visit_scope_node(const ScopeNode *node) override;
-  void visit_identifier_node(const IdentifierNode *node) override;
-  void visit_parameter_node(const ParameterNode *node) override;
-  void visit_func_decl_node(const FunctionDeclarationNode *node) override;
-  void visit_func_def_node(const FunctionDefinitionNode *node) override;
-  void visit_return_node(const ReturnNode *node) override;
-  void visit_assignment_node(const AssignmentNode *node) override;
-  void visit_var_decl_node(const VariableDeclarationNode *node) override;
-  void visit_var_init_node(const VariableInitializationNode *node) override;
+  void visit_int_literal_node(IntegerLiteralNode *node) override;
+  void visit_scope_node(ScopeNode *node) override;
+  void visit_identifier_node(IdentifierNode *node) override;
+  void visit_parameter_node(ParameterNode *node) override;
+  void visit_func_decl_node(FunctionDeclarationNode *node) override;
+  void visit_func_def_node(FunctionDefinitionNode *node) override;
+  void visit_return_node(ReturnNode *node) override;
+  void visit_assignment_node(AssignmentNode *node) override;
+  void visit_var_decl_node(VariableDeclarationNode *node) override;
+  void visit_var_init_node(VariableInitializationNode *node) override;
 
 private:
   std::ostringstream text, data, bss;

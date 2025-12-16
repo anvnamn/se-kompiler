@@ -1,7 +1,7 @@
 #include "codegen.h"
 #include "node.h"
 
-std::string Codegen::generate_assembly(const ScopeNode &program) {
+std::string Codegen::generate_assembly(ScopeNode &program) {
 
   text.clear();
   data.clear();
@@ -26,13 +26,13 @@ std::string Codegen::generate_assembly(const ScopeNode &program) {
   return text.str() + data.str() + bss.str();
 }
 
-void Codegen::visit_scope_node(const ScopeNode *node) {
+void Codegen::visit_scope_node(ScopeNode *node) {
   for (const auto &stmt : node->statements) {
     stmt->accept(this);
   }
 }
 
-void Codegen::visit_func_def_node(const FunctionDefinitionNode *node) {
+void Codegen::visit_func_def_node(FunctionDefinitionNode *node) {
   text << node->functionName->name << ":"
        << "\n";
 
@@ -74,7 +74,7 @@ void Codegen::visit_func_def_node(const FunctionDefinitionNode *node) {
   text << "    ret\n";
 }
 
-void Codegen::visit_return_node(const ReturnNode *node) {
+void Codegen::visit_return_node(ReturnNode *node) {
   if (const auto *int_lit =
           dynamic_cast<const IntegerLiteralNode *>(node->expression.get())) {
     text << "    movq $" << int_lit->value << ", %rax\n";
@@ -106,7 +106,7 @@ void Codegen::visit_return_node(const ReturnNode *node) {
   text << "    jmp " << *node->return_label << "\n";
 }
 
-void Codegen::visit_var_decl_node(const VariableDeclarationNode *node) {
+void Codegen::visit_var_decl_node(VariableDeclarationNode *node) {
 
   const auto var_info = node->variable->variable_annotation;
   if (!var_info) {
@@ -126,31 +126,31 @@ void Codegen::visit_var_decl_node(const VariableDeclarationNode *node) {
   }
 }
 
-void Codegen::visit_int_literal_node(const IntegerLiteralNode *node) {
+void Codegen::visit_int_literal_node(IntegerLiteralNode *node) {
   // Integer literals are typically handled in context (e.g., in return
   // statements) This is a no-op in most cases
 }
 
-void Codegen::visit_identifier_node(const IdentifierNode *node) {
+void Codegen::visit_identifier_node(IdentifierNode *node) {
   // Identifiers are typically handled in context
   // This is a no-op in most cases
 }
 
-void Codegen::visit_parameter_node(const ParameterNode *node) {
+void Codegen::visit_parameter_node(ParameterNode *node) {
   // Parameters are handled during function definition setup
   // This is a no-op in most cases
 }
 
-void Codegen::visit_func_decl_node(const FunctionDeclarationNode *node) {
+void Codegen::visit_func_decl_node(FunctionDeclarationNode *node) {
   // Function declarations without definitions don't generate code
 }
 
-void Codegen::visit_assignment_node(const AssignmentNode *node) {
+void Codegen::visit_assignment_node(AssignmentNode *node) {
   // Assignment handling can be added here when needed
   throw std::runtime_error("Assignment code generation not yet implemented");
 }
 
-void Codegen::visit_var_init_node(const VariableInitializationNode *node) {
+void Codegen::visit_var_init_node(VariableInitializationNode *node) {
   const auto var_info = node->variable->variable_annotation;
   if (!var_info) {
     throw std::runtime_error(
