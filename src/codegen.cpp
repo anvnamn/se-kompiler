@@ -44,13 +44,15 @@ void Codegen::visit_func_def_node(FunctionDefinitionNode *node) {
         fmt::format("Function {} has null body", node->functionName->name));
   }
 
-  if (!node->body->scope_annotation) {
+  if (!node->body->scope_annotation.has_value()) {
     throw std::runtime_error(fmt::format("Function {} has no scope annotation",
                                          node->functionName->name));
   }
 
+  ScopeInfo scope_annotation = node->body->scope_annotation.value();
+
   // Allocate stack space for local variables
-  int local_var_size = node->body->scope_annotation->stack_size;
+  int local_var_size = scope_annotation.stack_size;
   // Make sure local_var_size is a multiple of 16
   constexpr int stack_alignment = 16;
   int remainder = local_var_size % stack_alignment;
@@ -63,12 +65,12 @@ void Codegen::visit_func_def_node(FunctionDefinitionNode *node) {
 
   node->body->accept(this); // Visit function body
 
-  if (node->body->scope_annotation->return_label.empty()) {
+  if (scope_annotation.return_label.empty()) {
     throw std::runtime_error(fmt::format(
         "Function {}'s body has no return label", node->functionName->name));
   }
 
-  text << node->body->scope_annotation->return_label << ":\n";
+  text << scope_annotation.return_label << ":\n";
   text << "    mov %rbp, %rsp\n"; // restore stack pointer
   text << "    pop %rbp\n";       // restore caller base pointer
   text << "    ret\n";
@@ -124,30 +126,6 @@ void Codegen::visit_var_decl_node(VariableDeclarationNode *node) {
           "initializations so far");
     }
   }
-}
-
-void Codegen::visit_int_literal_node(IntegerLiteralNode *node) {
-  // Integer literals are typically handled in context (e.g., in return
-  // statements) This is a no-op in most cases
-}
-
-void Codegen::visit_identifier_node(IdentifierNode *node) {
-  // Identifiers are typically handled in context
-  // This is a no-op in most cases
-}
-
-void Codegen::visit_parameter_node(ParameterNode *node) {
-  // Parameters are handled during function definition setup
-  // This is a no-op in most cases
-}
-
-void Codegen::visit_func_decl_node(FunctionDeclarationNode *node) {
-  // Function declarations without definitions don't generate code
-}
-
-void Codegen::visit_assignment_node(AssignmentNode *node) {
-  // Assignment handling can be added here when needed
-  throw std::runtime_error("Assignment code generation not yet implemented");
 }
 
 void Codegen::visit_var_init_node(VariableInitializationNode *node) {
