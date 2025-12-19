@@ -1,32 +1,24 @@
 #include "semantic_analyzer.h"
 #include "fmt/format.h"
 
-void SemanticAnalyzer::analyze_scope(ScopeNode *ast) {
-  for (const auto &node : ast->statements) {
-    if (auto var_decl = dynamic_cast<VariableDeclarationNode *>(node.get())) {
-      analyze_var_decl(var_decl);
-    } else if (auto func_decl =
-                   dynamic_cast<FunctionDeclarationNode *>(node.get())) {
-      analyze_func_decl(func_decl);
-    } else if (auto return_stmt = dynamic_cast<ReturnNode *>(node.get())) {
-      analyze_return_stmt(return_stmt);
-    } else if (auto scope = dynamic_cast<ScopeNode *>(node.get())) {
-      scope_stack.push_back(ScopeInfo(ScopeType::Block)); // Enter block scope
-      analyze_scope(scope);
-    } else {
-      throw std::runtime_error(fmt::format(
-          "Encountered uninmplemented statement type during analysis: {}",
-          to_string(*node)));
-    }
+void SemanticAnalyzer::visit_scope_node(ScopeNode *ast) {
+  if (ast->scope_annotation.has_value()) {
+    scope_stack.push_back(
+        ast->scope_annotation.value()); // Enter annotated scope
+  } else {
+    scope_stack.push_back(ScopeInfo(ScopeType::Block)); // Enter block scope
   }
-  ast->scope_annotation = scope_stack.back(); // Annotate scope
+
+  for (const auto &node : ast->statements) {
+    node->accept(this);
+  }
+  ast->scope_annotation = scope_stack.back(); // Update scope annotation
   scope_stack.pop_back();                     // Exit scope
 }
 
 void SemanticAnalyzer::analyze_program(ScopeNode *ast) {
-  scope_stack.push_back(ScopeInfo(ScopeType::Global)); // Enter global scope
-
-  analyze_scope(ast);
+  ast->scope_annotation = ScopeInfo(ScopeType::Global);
+  ast->accept(this);
 
   if (!functions.contains("huvud")) {
     throw std::runtime_error("No main function found");
@@ -40,7 +32,13 @@ void SemanticAnalyzer::analyze_program(ScopeNode *ast) {
   }
 }
 
-void SemanticAnalyzer::analyze_var_decl(VariableDeclarationNode *var_decl) {
+// Delegate variable initialization to declaration visitor
+void SemanticAnalyzer::visit_var_init_node(VariableInitializationNode *node) {
+  visit_var_decl_node(
+      dynamic_cast<VariableDeclarationNode *>(node)); // Treat as declaration
+}
+
+void SemanticAnalyzer::visit_var_decl_node(VariableDeclarationNode *var_decl) {
   std::string var_name = var_decl->variable->name;
   Datatype var_type = var_decl->datatype;
   if (var_type != Datatype::INTEGER) {
@@ -49,8 +47,8 @@ void SemanticAnalyzer::analyze_var_decl(VariableDeclarationNode *var_decl) {
   }
 
   if (scope_stack.back().variables.contains(var_name)) {
-    throw std::runtime_error(
-        "Duplicate variable declaration found for variable {}." + var_name);
+    throw std::runtime_error(fmt::format(
+        "Duplicate variable declaration found for variable {}", var_name));
   }
 
   auto var_info = std::make_shared<VariableInfo>(VariableInfo{});
@@ -69,10 +67,15 @@ void SemanticAnalyzer::analyze_var_decl(VariableDeclarationNode *var_decl) {
   var_decl->variable->variable_annotation = var_info; // Annotate node
 }
 
-void SemanticAnalyzer::analyze_func_decl(FunctionDeclarationNode *func_decl) {
-  std::string func_name = func_decl->functionName->name;
-  Datatype return_type = func_decl->returnType;
-  auto func_def = dynamic_cast<FunctionDefinitionNode *>(func_decl);
+void SemanticAnalyzer::visit_func_def_node(FunctionDefinitionNode *node) {
+  visit_func_decl_node(
+      dynamic_cast<FunctionDeclarationNode *>(node)); // Treat as declaration
+}
+
+void SemanticAnalyzer::visit_func_decl_node(FunctionDeclarationNode *node) {
+  std::string func_name = node->functionName->name;
+  Datatype return_type = node->returnType;
+  auto func_def = dynamic_cast<FunctionDefinitionNode *>(node);
   if (functions.contains(func_name)) {
     // If this a definition, a previous declaration is OK
     if (func_def) {
@@ -101,7 +104,7 @@ void SemanticAnalyzer::analyze_func_decl(FunctionDeclarationNode *func_decl) {
     // no previous func def/decl exists
   } else {
     std::vector<Datatype> param_types;
-    for (auto &param : func_decl->parameters) {
+    for (auto &param : node->parameters) {
       auto data_type = param->datatype;
       if (data_type != Datatype::INTEGER) {
         throw std::runtime_error(
@@ -118,20 +121,13 @@ void SemanticAnalyzer::analyze_func_decl(FunctionDeclarationNode *func_decl) {
     auto return_label = fmt::format("{}_return", func_name);
     auto scope_info = ScopeInfo(ScopeType::Function);
     scope_info.return_label = return_label;
-    scope_stack.push_back(scope_info); // Enter function scope
-    for (const auto &param : func_def->parameters) {
-      auto var_info =
-          VariableInfo{.name = param->name->name,
-                       .type = param->datatype,
-                       .stack_offset = scope_stack.back().stack_size};
-      auto var_info_ptr = std::make_shared<VariableInfo>(var_info);
-    }
+    func_def->body->scope_annotation = scope_info;
     fmt::println("Going into function scope");
-    analyze_scope(func_def->body.get());
+    func_def->body->accept(this);
   }
 }
 
-void SemanticAnalyzer::analyze_return_stmt(ReturnNode *return_stmt) {
+void SemanticAnalyzer::visit_return_node(ReturnNode *node) {
   // Must be in function scope
   if (scope_stack.back().type != ScopeType::Function) {
     throw std::runtime_error("Return statement not in function scope");
@@ -141,13 +137,13 @@ void SemanticAnalyzer::analyze_return_stmt(ReturnNode *return_stmt) {
     throw std::runtime_error("Function scope has no return label");
   }
   // Annotate return label
-  return_stmt->return_label = scope_stack.back().return_label;
+  node->return_label = scope_stack.back().return_label;
   if (auto int_lit =
-          dynamic_cast<IntegerLiteralNode *>(return_stmt->expression.get())) {
+          dynamic_cast<IntegerLiteralNode *>(node->expression.get())) {
     // OK, integer literal
     return;
-  } else if (auto ident_node = dynamic_cast<IdentifierNode *>(
-                 return_stmt->expression.get())) {
+  } else if (auto ident_node =
+                 dynamic_cast<IdentifierNode *>(node->expression.get())) {
     auto var_info = get_var_info(ident_node);
     if (!var_info) {
       throw std::runtime_error(fmt::format(
