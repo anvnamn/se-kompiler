@@ -1,17 +1,16 @@
 #include "node.h"
+#include "visitor.h"
 
-class Codegen {
+class Codegen : public Visitor {
 public:
-  std::string generate_assembly(const ScopeNode &program);
+  std::string generate_assembly(ScopeNode &program);
+
+  void visit_scope_node(ScopeNode *node) override;
+  void visit_func_def_node(FunctionDefinitionNode *node) override;
+  void visit_return_node(ReturnNode *node) override;
+  void visit_var_decl_node(VariableDeclarationNode *node) override;
+  void visit_var_init_node(VariableInitializationNode *node) override;
 
 private:
-  void generate_scope(const ScopeNode &node);
-
-  void generate_statement(const StatementNode &node);
-  void generate_function_def(const FunctionDefinitionNode &node);
-  void generate_return_node(const ReturnNode &node);
-
-  void generate_variable_declaration(const VariableDeclarationNode &node);
-
   std::ostringstream text, data, bss;
 };

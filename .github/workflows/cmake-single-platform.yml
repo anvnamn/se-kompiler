@@ -25,7 +25,13 @@ jobs:
       run: bash build.sh config
 
     - name: Run clang-tidy
+      continue-on-error: true
+      id: tidy
       run: find src tests -name "*.cpp" | xargs -n1 -P "$(nproc)" clang-tidy -p build
+
+    - name: Check clang-tidy results
+      if: steps.tidy.outcome == 'failure'
+      run: exit 1
 
   build-test:
     runs-on: self-hosted
