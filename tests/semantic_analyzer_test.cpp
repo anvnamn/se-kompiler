@@ -308,6 +308,9 @@ TEST(SemanticAnalyzer, DuplicateFunctionDefinition) {
 }
 
 TEST(SemanticAnalyzer, AssignmentDeclaredVar) {
+  constexpr int init_value = 33;
+  constexpr int assigned_value = 44;
+
   auto ident_node = std::make_unique<IdentifierNode>("assigned_var");
 
   auto var_info = std::make_shared<VariableInfo>();
@@ -315,7 +318,7 @@ TEST(SemanticAnalyzer, AssignmentDeclaredVar) {
   var_info->type = Datatype::INTEGER;
   var_info->stack_offset = -4; // Integger at top of stack
   ident_node->variable_annotation = var_info;
-  const auto int_lit_value = 1337;
+  const auto int_lit_value = init_value;
   auto int_lit_node = std::make_unique<IntegerLiteralNode>(int_lit_value);
   auto var_init = std::make_unique<VariableInitializationNode>(
       Datatype::INTEGER, std::move(ident_node), std::move(int_lit_node));
@@ -326,7 +329,7 @@ TEST(SemanticAnalyzer, AssignmentDeclaredVar) {
   auto ident_node_ptr = new IdentifierNode("assigned_var");
   auto assignment_node = std::make_unique<AssignmentNode>(
       std::unique_ptr<IdentifierNode>(ident_node_ptr),
-      std::make_unique<IntegerLiteralNode>(100));
+      std::make_unique<IntegerLiteralNode>(assigned_value));
   builder.add_to_main(std::move(assignment_node));
 
   auto program = builder.build();
@@ -347,12 +350,13 @@ TEST(SemanticAnalyzer, AssignmentDeclaredVar) {
 }
 
 TEST(SemanticAnalyzer, AssignmentUndeclaredVar) {
+  constexpr int assigned_value = 44;
   ProgramBuilder builder;
 
   auto ident_node_ptr = new IdentifierNode("assigned_var");
   auto assignment_node = std::make_unique<AssignmentNode>(
       std::unique_ptr<IdentifierNode>(ident_node_ptr),
-      std::make_unique<IntegerLiteralNode>(100));
+      std::make_unique<IntegerLiteralNode>(assigned_value));
   builder.add_to_main(std::move(assignment_node));
 
   auto program = builder.build();
