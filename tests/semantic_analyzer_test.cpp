@@ -6,7 +6,7 @@
 
 constexpr int INTEGER_SIZE = 4;
 
-TEST(GlobalVar, AnnotateGlobalVar) {
+TEST(SemanticAnalyzer, AnnotateGlobalVar) {
   const std::string expected_var_name = "global_var";
   constexpr Datatype expected_data_type = Datatype::INTEGER;
 
@@ -35,7 +35,7 @@ TEST(GlobalVar, AnnotateGlobalVar) {
             expected_data_type);
 }
 
-TEST(GlobalVar, DuplicateGlobalVar) {
+TEST(SemanticAnalyzer, DuplicateGlobalVar) {
   std::vector<std::unique_ptr<StatementNode>> statements;
 
   for (size_t i{0}; i < 2; i++) {
@@ -55,7 +55,7 @@ TEST(GlobalVar, DuplicateGlobalVar) {
   ASSERT_ANY_THROW(analyzer.analyze_program(program.get()));
 }
 
-TEST(LocalVar, AnnotateLocalVar) {
+TEST(SemanticAnalyzer, AnnotateLocalVar) {
   // Local variable names and expected stack offsets
   std::vector<std::pair<std::string, int>> local_vars;
   int stack_size = 0;
@@ -95,7 +95,7 @@ TEST(LocalVar, AnnotateLocalVar) {
   }
 }
 
-TEST(LocalVar, DuplicateLocalVar) {
+TEST(SemanticAnalyzer, DuplicateLocalVar) {
   ProgramBuilder builder;
 
   const std::string duplicate_var_name = "duplicate_var";
@@ -113,7 +113,7 @@ TEST(LocalVar, DuplicateLocalVar) {
   ASSERT_ANY_THROW(analyzer.analyze_program(program.get()));
 }
 
-TEST(AnnotateIdentifier, ReturnStatement) {
+TEST(SemanticAnalyzer, ReturnStatement) {
   auto ident_node = std::make_unique<IdentifierNode>("global_var");
 
   auto var_info = std::make_shared<VariableInfo>();
@@ -146,7 +146,7 @@ TEST(AnnotateIdentifier, ReturnStatement) {
             var_info->is_global);
 }
 
-TEST(BlockScope, DeclareIntegers) {
+TEST(SemanticAnalyzer, DeclareIntegers) {
   std::vector<std::unique_ptr<StatementNode>> block_statements;
   std::vector<std::pair<std::string, int>> local_vars;
   int stack_size = 0;
@@ -188,7 +188,7 @@ TEST(BlockScope, DeclareIntegers) {
   }
 }
 
-TEST(BlockScope, DuplicateDeclaration) {
+TEST(SemanticAnalyzer, DuplicateDeclaration) {
   std::vector<std::unique_ptr<StatementNode>> block_statements;
   const auto var_names = {"duplicate_var", "duplicate_var"};
 
@@ -218,7 +218,7 @@ TEST(BlockScope, DuplicateDeclaration) {
   }
 }
 
-TEST(BlockScope, NestedScopes) {
+TEST(SemanticAnalyzer, NestedScopes) {
   const auto var_name = "nested_var";
 
   std::unique_ptr<ScopeNode> scope = nullptr;
@@ -256,7 +256,7 @@ TEST(BlockScope, NestedScopes) {
   }
 }
 
-TEST(Function, DuplicateFunctionDeclaration) {
+TEST(SemanticAnalyzer, DuplicateFunctionDeclaration) {
   ProgramBuilder builder;
 
   const std::string func_name = "duplicate_function";
@@ -279,7 +279,7 @@ TEST(Function, DuplicateFunctionDeclaration) {
   }
 }
 
-TEST(Function, DuplicateFunctionDefinition) {
+TEST(SemanticAnalyzer, DuplicateFunctionDefinition) {
   ProgramBuilder builder;
 
   const std::string func_name = "duplicate_function";
@@ -305,4 +305,58 @@ TEST(Function, DuplicateFunctionDefinition) {
     std::string msg = e.what();
     EXPECT_TRUE(msg.starts_with("Duplicate function definition"));
   }
+}
+
+TEST(SemanticAnalyzer, AssignmentDeclaredVar) {
+  auto ident_node = std::make_unique<IdentifierNode>("assigned_var");
+
+  auto var_info = std::make_shared<VariableInfo>();
+  var_info->name = "assigned_var";
+  var_info->type = Datatype::INTEGER;
+  var_info->stack_offset = -4; // Integger at top of stack
+  ident_node->variable_annotation = var_info;
+  const auto int_lit_value = 1337;
+  auto int_lit_node = std::make_unique<IntegerLiteralNode>(int_lit_value);
+  auto var_init = std::make_unique<VariableInitializationNode>(
+      Datatype::INTEGER, std::move(ident_node), std::move(int_lit_node));
+
+  ProgramBuilder builder;
+  builder.add_to_main(std::move(var_init));
+
+  auto ident_node_ptr = new IdentifierNode("assigned_var");
+  auto assignment_node = std::make_unique<AssignmentNode>(
+      std::unique_ptr<IdentifierNode>(ident_node_ptr),
+      std::make_unique<IntegerLiteralNode>(100));
+  builder.add_to_main(std::move(assignment_node));
+
+  auto program = builder.build();
+
+  auto analyzer = SemanticAnalyzer();
+  analyzer.analyze_program(program.get());
+
+  if (!ident_node_ptr->variable_annotation) {
+    FAIL() << "Assignment IdentifierNode not annotated";
+  }
+
+  ASSERT_EQ(ident_node_ptr->variable_annotation->name, var_info->name);
+  ASSERT_EQ(ident_node_ptr->variable_annotation->type, var_info->type);
+  ASSERT_EQ(ident_node_ptr->variable_annotation->stack_offset,
+            var_info->stack_offset);
+  ASSERT_EQ(ident_node_ptr->variable_annotation->is_global,
+            var_info->is_global);
+}
+
+TEST(SemanticAnalyzer, AssignmentUndeclaredVar) {
+  ProgramBuilder builder;
+
+  auto ident_node_ptr = new IdentifierNode("assigned_var");
+  auto assignment_node = std::make_unique<AssignmentNode>(
+      std::unique_ptr<IdentifierNode>(ident_node_ptr),
+      std::make_unique<IntegerLiteralNode>(100));
+  builder.add_to_main(std::move(assignment_node));
+
+  auto program = builder.build();
+
+  auto analyzer = SemanticAnalyzer();
+  ASSERT_ANY_THROW(analyzer.analyze_program(program.get()););
 }

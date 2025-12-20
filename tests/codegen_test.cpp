@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-TEST(ReturnStatement, ReturnIntegerLiteral) {
+TEST(Codegen, ReturnIntegerLiteral) {
   ProgramBuilder builder;
 
   constexpr int return_value = 123;
@@ -26,7 +26,7 @@ TEST(ReturnStatement, ReturnIntegerLiteral) {
   ASSERT_EQ(return_status, return_value);
 }
 
-TEST(ReturnStatement, ReturnGlobalVariable) {
+TEST(Codegen, ReturnGlobalVariable) {
   auto ident_node = std::make_unique<IdentifierNode>("global_var");
 
   auto var_info = std::make_shared<VariableInfo>();
@@ -61,7 +61,7 @@ TEST(ReturnStatement, ReturnGlobalVariable) {
   ASSERT_EQ(return_status, int_lit_value);
 }
 
-TEST(ReturnStatement, ReturnLocalVariable) {
+TEST(Codegen, ReturnLocalVariable) {
   auto ident_node = std::make_unique<IdentifierNode>("local_var");
 
   auto var_info = std::make_shared<VariableInfo>();
@@ -92,7 +92,7 @@ TEST(ReturnStatement, ReturnLocalVariable) {
   ASSERT_EQ(return_status, int_lit_value);
 }
 
-TEST(GlobalVar, GlobalVariableDeclaration) {
+TEST(Codegen, GlobalVariableDeclaration) {
   auto ident_node = std::make_unique<IdentifierNode>("global_var");
   auto var_info = std::make_shared<VariableInfo>();
   var_info->name = "global_var";
@@ -125,7 +125,7 @@ TEST(GlobalVar, GlobalVariableDeclaration) {
   ASSERT_EQ(return_status, 0);
 }
 
-TEST(GlobalVar, GlobalVariableInitialization) {
+TEST(Codegen, GlobalVariableInitialization) {
   auto ident_node = std::make_unique<IdentifierNode>("global_var");
   auto var_info = std::make_shared<VariableInfo>();
   var_info->name = "global_var";
