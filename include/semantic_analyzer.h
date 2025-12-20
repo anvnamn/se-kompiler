@@ -19,6 +19,7 @@ public:
   void visit_func_decl_node(FunctionDeclarationNode *node) override;
   void visit_func_def_node(FunctionDefinitionNode *node) override;
   void visit_return_node(ReturnNode *node) override;
+  void visit_assignment_node(AssignmentNode *node) override;
 
   std::shared_ptr<VariableInfo> get_var_info(IdentifierNode *identifier);
 };

@@ -156,6 +156,24 @@ void SemanticAnalyzer::visit_return_node(ReturnNode *node) {
   }
 }
 
+void SemanticAnalyzer::visit_assignment_node(AssignmentNode *node) {
+  auto ident_node = dynamic_cast<IdentifierNode *>(node->variable.get());
+  auto var_info = get_var_info(ident_node);
+  if (!var_info) {
+    throw std::runtime_error(
+        fmt::format("Undeclared variable in assignment: {}", ident_node->name));
+  }
+  ident_node->variable_annotation = var_info;
+
+  if (auto int_lit =
+          dynamic_cast<IntegerLiteralNode *>(node->expression.get())) {
+    return;
+  } else {
+    throw std::runtime_error(
+        "Unimplemented expression type in assignment statement");
+  }
+}
+
 std::shared_ptr<VariableInfo>
 SemanticAnalyzer::get_var_info(IdentifierNode *identifier) {
 

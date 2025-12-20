@@ -37,8 +37,8 @@ public:
     main_body_ptr->statements.push_back(std::move(stmt));
   }
 
-  void annotate_main_scope(const ScopeInfo &info) {
-    main_function->body->scope_annotation = info;
+  void set_main_scope_stack_size(int stack_size) {
+    main_function->body->scope_annotation->stack_size = stack_size;
   }
 
   std::unique_ptr<ScopeNode> build() {

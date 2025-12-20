@@ -151,3 +151,27 @@ void Codegen::visit_var_init_node(VariableInitializationNode *node) {
                              "initializations so far");
   }
 }
+
+void Codegen::visit_assignment_node(AssignmentNode *node) {
+  const auto var_info = node->variable->variable_annotation;
+  if (!var_info) {
+    throw std::runtime_error(
+        fmt::format("Variable {} has no annotation", node->variable->name));
+  }
+
+  if (const auto int_lit =
+          dynamic_cast<const IntegerLiteralNode *>(node->expression.get())) {
+    if (var_info->is_global) {
+      text << fmt::format("    movl ${}, {}(%rip)\n", int_lit->value,
+                          var_info->name);
+      return;
+    } else {
+      text << fmt::format("    movl ${}, {}(%rbp)\n", int_lit->value,
+                          var_info->stack_offset);
+      return;
+    }
+  } else {
+    throw std::runtime_error(
+        "Only integer literals are supported in assignments so far");
+  }
+}

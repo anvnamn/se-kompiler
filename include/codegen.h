@@ -10,6 +10,7 @@ public:
   void visit_return_node(ReturnNode *node) override;
   void visit_var_decl_node(VariableDeclarationNode *node) override;
   void visit_var_init_node(VariableInitializationNode *node) override;
+  void visit_assignment_node(AssignmentNode *node) override;
 
 private:
   std::ostringstream text, data, bss;
