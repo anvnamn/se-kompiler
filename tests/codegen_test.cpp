@@ -68,6 +68,7 @@ TEST(Codegen, ReturnLocalVariable) {
   var_info->name = "local_var";
   var_info->type = Datatype::INTEGER;
   var_info->is_global = false;
+  var_info->stack_offset = -4; // Top of stack
   ident_node->variable_annotation = var_info;
   const auto int_lit_value = 77;
   auto int_lit_node = std::make_unique<IntegerLiteralNode>(int_lit_value);
@@ -156,4 +157,45 @@ TEST(Codegen, GlobalVariableInitialization) {
 
   const auto return_status = run_assembly(actual_as);
   ASSERT_EQ(return_status, 0);
+}
+
+TEST(Codegen, AssignIntegerVar) {
+  const std::string var_name = "assigned_var";
+  constexpr int init_value = 33;
+  constexpr int assigned_value = 44;
+  auto ident_node = std::make_unique<IdentifierNode>(var_name);
+
+  auto var_info = std::make_shared<VariableInfo>();
+  var_info->name = var_name;
+  var_info->type = Datatype::INTEGER;
+  var_info->stack_offset = -4; // Integer at top of stack
+  ident_node->variable_annotation = var_info;
+  const auto int_lit_value = init_value;
+  auto int_lit_node = std::make_unique<IntegerLiteralNode>(int_lit_value);
+  auto var_init = std::make_unique<VariableInitializationNode>(
+      Datatype::INTEGER, std::move(ident_node), std::move(int_lit_node));
+
+  ProgramBuilder builder;
+  builder.add_to_main(std::move(var_init));
+
+  auto ident_node_ptr = new IdentifierNode(var_name);
+  ident_node_ptr->variable_annotation = var_info;
+  auto assignment_node = std::make_unique<AssignmentNode>(
+      std::unique_ptr<IdentifierNode>(ident_node_ptr),
+      std::make_unique<IntegerLiteralNode>(assigned_value));
+  builder.add_to_main(std::move(assignment_node));
+
+  auto return_ident_node_ptr = new IdentifierNode(var_name);
+  return_ident_node_ptr->variable_annotation = var_info;
+  auto return_node = std::make_unique<ReturnNode>(
+      std::unique_ptr<IdentifierNode>(return_ident_node_ptr));
+  return_node->return_label = builder.get_main_return_label();
+  builder.add_to_main(std::move(return_node));
+
+  auto program = builder.build();
+  auto codegen = Codegen();
+  const auto actual_as = codegen.generate_assembly(*program);
+  fmt::print("Generated assembly:\n{}", actual_as);
+  const auto return_status = run_assembly(actual_as);
+  ASSERT_EQ(return_status, assigned_value);
 }
